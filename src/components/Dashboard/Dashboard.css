@@ -1,0 +1,153 @@
+/* --- General Dashboard Container --- */
+.dashboard-container {
+    padding: 25px 20px;
+    text-align: center;
+    background-color: #F8F9FA;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; 
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    color: #34495E; 
+}
+
+/* --- Dashboard Header --- */
+.dashboard-header {
+    margin-bottom: 40px;
+}
+
+.dashboard-header h1 {
+    color: #2C3E50; 
+    font-size: 1.8em;
+    margin-bottom: 15px;
+    font-weight: 400;
+}
+
+.dashboard-header p {
+    color: #7F8C8D;
+    font-size: 1.2em; 
+    font-weight: 300;
+}
+
+/* --- Dashboard Options Grid --- */
+.dashboard-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px; /* Space between cards */
+    max-width: 1200px; /* Max width for the grid */
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* --- Individual Dashboard Card --- */
+.dashboard-card {
+    background-color: #FFFFFF; /* Pure white card background */
+    border: 1px solid #ECF0F1; /* Very light border */
+    border-radius: 12px; /* Slightly more rounded corners */
+    padding: 30px;
+    text-decoration: none; /* Remove underline from Link */
+    color: #34495E; /* Dark grayish-blue for card content */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Subtle shadow */
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-8px); /* Lift effect on hover */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); /* More pronounced shadow on hover */
+    border-color: #3498DB; /* Professional Blue border on hover */
+}
+
+.dashboard-card-icon {
+    font-size: 2.5em; /* Size for icons */
+    color: #3498DB; /* Professional Blue for icons */
+    margin-bottom: 15px;
+}
+
+.dashboard-card h2 {
+    color: #2C3E50; /* Deep Charcoal for card titles */
+    font-size: 1.5em; /* Larger card title */
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.dashboard-card p {
+    font-size: 0.8em; /* Standard text size */
+    color: #7F8C8D; /* Medium gray for card descriptions */
+    line-height: 1.6;
+}
+
+/* --- Logout Button --- */
+.dashboard-logout-button {
+    position: fixed; /* Keep it fixed on the page */
+    top: 25px;
+    right: 30px;
+    background-color: #E74C3C; /* Professional Red for logout */
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.05em;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-logout-button:hover {
+    background-color: #C0392B; /* Darker red on hover */
+    transform: translateY(-2px);
+}
+
+/* --- Back to Dashboard Button (for forms) --- */
+.back-to-dashboard-btn {
+    display: inline-block;
+    margin-top: 30px;
+    padding: 12px 25px;
+    background-color: #95A5A6; /* Professional Gray */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.back-to-dashboard-btn:hover {
+    background-color: #7F8C8D; /* Darker gray on hover */
+    transform: translateY(-2px);
+}
+
+/* --- Basic styling for form-page-container (ensure these are in App.css or a shared CSS) --- */
+.form-page-container {
+    padding: 30px; /* Slightly more padding */
+    max-width: 1200px;
+    margin: 30px auto; /* More margin */
+    background-color: #ffffff;
+    border-radius: 10px; /* Match dashboard card radius */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Match dashboard card shadow */
+}
+
+.form-page-container h1 {
+    color: #2C3E50; /* Deep Charcoal */
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2em; /* Consistent heading size */
+}
+
+/* Ensure your App.css or index.css has this base body styling */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f8f9fa; /* Consistent background */
+    color: #333;
+}
+

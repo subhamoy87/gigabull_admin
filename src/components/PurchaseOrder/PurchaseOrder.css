@@ -1,0 +1,188 @@
+/* PurchaseOrder.css - Styles updated to match ProformaInvoiceForm.css */
+.purchase-order-container {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    max-width: 960px;
+    margin: 20px auto;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-wrapper {
+    padding: 15px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 10px;
+}
+
+.header h1 {
+    margin: 0;
+    color: #333;
+}
+
+.form-section {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+.form-section h3 {
+    margin-top: 0;
+    color: #555;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #666;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="date"],
+.form-group input[type="number"],
+.form-group textarea,
+.form-group select {
+    width: calc(100% - 10px); /* Adjust for padding */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 1em;
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+.details-flex {
+    display: flex;
+    gap: 20px;
+}
+
+.details-flex > div {
+    flex: 1;
+    border: 1px dashed #ccc;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.line-items table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.line-items th, .line-items td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.line-items th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #333;
+}
+
+.line-items td input,
+.line-items td textarea {
+    width: calc(100% - 5px);
+    border: none;
+    padding: 5px;
+    box-sizing: border-box;
+    background: transparent;
+}
+
+.add-item-btn, .remove-item-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+.remove-item-btn {
+    background-color: #dc3545;
+}
+
+.add-item-btn:hover {
+    background-color: #0056b3;
+}
+
+.remove-item-btn:hover {
+    background-color: #c82333;
+}
+
+.totals-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding-top: 10px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    width: 300px;
+    margin-bottom: 5px;
+    font-size: 1.1em;
+}
+
+.total-row span:first-child {
+    font-weight: bold;
+    color: #333;
+}
+
+.grand-total {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #000;
+    border-top: 2px solid #333;
+    padding-top: 5px;
+    margin-top: 5px;
+}
+
+.submit-btn {
+     display: block;
+    width: 100%;
+    padding: 18px; /* Larger padding */
+    background-color: #007bff; /* Primary accent color */
+    color: white;
+    border: none;
+    border-radius: 8px; /* More rounded */
+    font-size: 1.4em; /* Larger font size */
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 40px;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3); /* Subtle shadow */
+    transition: background-color 0.2s ease-in-out, transform 0.1s, box-shadow 0.2s;
+}
+
+.submit-btn:hover {
+   background-color: #0056b3; /* Darker blue on hover */
+    transform: translateY(-2px); /* Lift effect */
+    box-shadow: 0 6px 15px rgba(0, 123, 255, 0.4);
+}

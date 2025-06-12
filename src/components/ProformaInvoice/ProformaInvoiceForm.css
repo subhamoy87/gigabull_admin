@@ -1,0 +1,379 @@
+/* General Body and Container Styling */
+body {
+    background-color: #f0f2f5; /* Light grey background for the whole page */
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; /* Modern, clean font */
+    color: #333;
+}
+
+.proforma-invoice-container {
+    padding: 30px;
+    max-width: 950px; /* Slightly wider container */
+    margin: 30px auto;
+    background-color: #ffffff;
+    border-radius: 10px; /* Rounded corners for the main container */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Softer, more pronounced shadow */
+    border: none; /* Remove default border */
+}
+
+.form-wrapper {
+    padding: 20px; /* Increased padding inside the wrapper */
+}
+
+/* Header Styling */
+.header {
+    text-align: center;
+    margin-bottom: 40px; /* More space below header */
+    border-bottom: 3px solid #007bff; /* Accent color for the bottom border */
+    padding-bottom: 15px;
+}
+
+.header h1 {
+    margin: 0;
+    color: #007bff; /* Primary accent color for the title */
+    font-size: 2.8em; /* Larger title */
+    font-weight: 700; /* Bolder title */
+    letter-spacing: 1.5px; /* Slight letter spacing */
+}
+
+/* Form Section Styling */
+.form-section {
+    background-color: #ffffff; /* White background for sections */
+    border: 1px solid #e0e6ed; /* Lighter, subtle border */
+    padding: 25px; /* Increased padding */
+    margin-bottom: 25px; /* More space between sections */
+    border-radius: 8px; /* Slightly more rounded corners for sections */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Subtle shadow for sections */
+}
+
+.form-section h3 {
+    margin-top: 0;
+    color: #4a4a4a; /* Darker grey for section titles */
+    border-bottom: 2px solid #f2f2f2; /* Lighter border for section titles */
+    padding-bottom: 10px;
+    margin-bottom: 20px; /* More space below section titles */
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+/* Form Group and Input Styling */
+.form-group label {
+    display: block;
+    margin-bottom: 8px; /* More space below labels */
+    font-weight: 600; /* Bolder labels */
+    color: #555;
+    font-size: 0.95em;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="date"],
+.form-group input[type="number"],
+.form-group textarea,
+.form-group select {
+    width: calc(100% - 20px); /* Adjust for padding and border */
+    padding: 10px 12px; /* Consistent padding */
+    border: 1px solid #cdd4da; /* Subtle border */
+    border-radius: 6px; /* Rounded input fields */
+    box-sizing: border-box;
+    font-size: 1em;
+    color: #333;
+    transition: all 0.3s ease-in-out; /* Smooth transitions for focus */
+    background-color: #fdfdfd;
+}
+
+.form-group input[type="file"] {
+    padding: 8px 0; /* Adjust padding for file input */
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: #007bff; /* Highlight border on focus */
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Subtle glow on focus */
+    outline: none;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 70px; /* More substantial default height */
+}
+
+/* Specific Section Layouts */
+.invoice-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Slightly larger min-width */
+    gap: 20px; /* More gap */
+}
+
+.seller-buyer-details {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 30px; /* More space between seller/buyer boxes */
+}
+
+.seller-details, .buyer-details {
+    flex: 1;
+    min-width: 300px; /* Ensure they don't get too small */
+    border: 1px dashed #a7d9ff; /* Soft dashed border with accent */
+    background-color: #fdfdfd; /* Light background for these boxes */
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.shipment-payment {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Adjusted for more content */
+    gap: 20px;
+}
+
+/* Table Styling for Line Items */
+.line-items table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    border-radius: 8px; /* Rounded corners for the table */
+    overflow: hidden; /* Ensures rounded corners are visible */
+}
+
+.line-items th, .line-items td {
+    border: 1px solid #e0e6ed; /* Lighter table borders */
+    padding: 12px 15px; /* More padding in cells */
+    text-align: left;
+    vertical-align: top; /* Align content to top */
+}
+
+.line-items th {
+    background-color: #e9eff5; /* Light blueish grey header */
+    font-weight: 700;
+    color: #444;
+    font-size: 0.95em;
+    text-transform: uppercase; /* Uppercase headers */
+    letter-spacing: 0.5px;
+}
+
+.line-items tr:nth-child(even) {
+    background-color: #f8faff; /* Subtle stripe effect for rows */
+}
+
+.line-items td input[type="text"],
+.line-items td textarea,
+.line-items td input[type="number"],
+.line-items td select {
+    width: calc(100% - 10px); /* Adjust input width in table cells */
+    border: 1px solid #e0e6ed; /* Border for table inputs */
+    padding: 8px;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background: #fff;
+    transition: border-color 0.2s;
+}
+
+.line-items td input:focus,
+.line-items td textarea:focus,
+.line-items td select:focus {
+    border-color: #007bff;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.line-items td textarea {
+    min-height: 35px; /* Adjust as needed */
+    max-height: 80px; /* Prevent excessive growth */
+    overflow-y: auto;
+}
+
+.add-item-btn, .remove-item-btn {
+    background-color: #28a745; /* Green for add */
+    color: white;
+    padding: 10px 18px; /* More padding */
+    border: none;
+    border-radius: 5px; /* Slightly more rounded */
+    cursor: pointer;
+    margin-top: 15px; /* More space */
+    font-size: 1em;
+    font-weight: 600;
+    transition: background-color 0.2s ease-in-out, transform 0.1s;
+}
+
+.remove-item-btn {
+    background-color: #dc3545; /* Red for remove */
+    margin-left: 10px;
+}
+
+.add-item-btn:hover {
+    background-color: #218838;
+    transform: translateY(-1px);
+}
+
+.remove-item-btn:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+}
+
+/* Totals Section */
+.totals-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding-top: 20px; /* More padding */
+    border-top: 2px solid #e0e6ed; /* Lighter, thicker border */
+    margin-top: 30px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    width: 350px; /* Wider total lines */
+    margin-bottom: 10px; /* More space between total rows */
+    font-size: 1.2em; /* Slightly larger text */
+    padding: 5px 0;
+}
+
+.total-row span:first-child {
+    font-weight: 700; /* Bolder labels */
+    color: #333;
+}
+.total-row span:last-child {
+    color: #007bff; /* Accent color for total values */
+    font-weight: 600;
+}
+
+.total-row.consignment-total {
+    font-size: 1.6em; /* Even larger for final total */
+    font-weight: 800; /* Extra bold */
+    color: #000;
+    border-top: 3px solid #007bff; /* Prominent border for final total */
+    padding-top: 15px;
+    margin-top: 15px;
+    width: 380px; /* Even wider */
+}
+
+/* Additional Info and Bank Details */
+.additional-info textarea,
+.bank-details textarea {
+    min-height: 100px; /* Taller text areas */
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    max-width: 800px;
+}
+
+/* Signatory Section */
+.signatory-section img {
+    display: block;
+    margin-top: 15px;
+    border: 1px dashed #b3e0ff; /* Light blue dashed border */
+    padding: 8px;
+    border-radius: 6px;
+    max-width: 120px; /* Slightly larger preview */
+    max-height: 60px;
+    object-fit: contain; /* Ensure image fits well */
+}
+
+/* Generate PDF Button */
+.generate-pdf-btn {
+    display: block;
+    width: 100%;
+    padding: 18px; /* Larger padding */
+    background-color: #007bff; /* Primary accent color */
+    color: white;
+    border: none;
+    border-radius: 8px; /* More rounded */
+    font-size: 1.4em; /* Larger font size */
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 40px;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3); /* Subtle shadow */
+    transition: background-color 0.2s ease-in-out, transform 0.1s, box-shadow 0.2s;
+}
+
+.generate-pdf-btn:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: translateY(-2px); /* Lift effect */
+    box-shadow: 0 6px 15px rgba(0, 123, 255, 0.4);
+}
+
+/* Message Box Styling (if re-enabled) */
+.message-box {
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.05em;
+    animation: fadeOut 5s forwards; /* Simple fade out animation */
+}
+
+.message-box.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.message-box.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.message-box.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .proforma-invoice-container {
+        margin: 15px;
+        padding: 20px;
+    }
+
+    .header h1 {
+        font-size: 2em;
+    }
+
+    .seller-buyer-details {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .seller-details, .buyer-details {
+        min-width: unset;
+        width: 100%;
+    }
+
+    .invoice-details, .shipment-payment {
+        grid-template-columns: 1fr;
+    }
+
+    .total-row {
+        width: 100%;
+        font-size: 1em;
+    }
+
+    .total-row.consignment-total {
+        width: 100%;
+        font-size: 1.3em;
+    }
+
+    .generate-pdf-btn {
+        font-size: 1.1em;
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-section {
+        padding: 15px;
+    }
+
+    .form-section h3 {
+        font-size: 1.3em;
+    }
+}

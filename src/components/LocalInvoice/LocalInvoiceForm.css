@@ -1,0 +1,9 @@
+.local-invoice-container {
+  padding: 1.5rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  font-size: larger;
+  font-weight:bold;
+  justify-content:center;
+  align-items:center;
+}
