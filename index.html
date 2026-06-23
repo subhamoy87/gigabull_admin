@@ -1,14 +1,2750 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
-    <link rel="icon" type="image/svg+xml" href="/logo12.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gigabull Admin</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Invoice & PO Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary-color: #0f172a;
+            --secondary-color: #1e293b;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius-md: 8px;
+            --radius-lg: 12px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 280px;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            box-shadow: var(--shadow-md);
+            z-index: 10;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            padding: 24px 0;
+            margin: 0;
+            background-color: var(--secondary-color);
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: #cbd5e1;
+            padding: 16px 24px;
+            text-align: left;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .tab-btn:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .tab-btn.active {
+            background-color: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid var(--accent-color);
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        /* Main Content Styling */
+        .main-content {
+            flex-grow: 1;
+            padding: 32px;
+            overflow-y: auto;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--card-bg);
+            padding: 32px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        h4 {
+            margin-top: 32px;
+            color: var(--secondary-color);
+            font-size: 1.15rem;
+            font-weight: 600;
+            padding: 12px 16px;
+            background-color: rgba(59, 130, 246, 0.05);
+            border-left: 4px solid var(--accent-color);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            margin-bottom: 24px;
+        }
+
+        /* Dashboard Cards */
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        .dash-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .dash-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--accent-color);
+        }
+
+        .dash-card .dash-icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+            background-color: rgba(59, 130, 246, 0.1);
+            padding: 12px;
+            border-radius: var(--radius-md);
+        }
+
+        .dash-card h4 {
+            margin: 0 0 12px 0;
+            color: var(--primary-color);
+            border-bottom: none;
+            padding-bottom: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .dash-card p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Form Controls */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 0.9rem;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea,
+        input[type="file"] {
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-family: inherit;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: #f8fafc;
+            color: var(--text-main);
+            transition: all 0.3s ease;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+            background-color: white;
+        }
+
+        input[readonly] {
+            background-color: #f1f5f9;
+            color: var(--text-muted);
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .error-field {
+            border-color: var(--error-color) !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+        }
+
+        /* Tables */
+        .table-input {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 24px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .table-input th,
+        .table-input td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .table-input th {
+            background-color: var(--secondary-color);
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+        }
+
+        .table-input tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-input tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .table-input tbody tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        .table-input input {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-hover) 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(59, 130, 246, 0.35);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);
+        }
+
+        .btn-add:hover {
+            box-shadow: 0 6px 12px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-remove {
+            background: transparent;
+            color: var(--error-color);
+            padding: 8px 12px;
+            box-shadow: none;
+            border: 1px solid var(--error-color);
+        }
+
+        .btn-remove:hover {
+            background: var(--error-color);
+            color: white;
+            box-shadow: 0 4px 6px rgba(239, 68, 68, 0.25);
+            transform: translateY(-1px);
+        }
+
+        /* Previews & Panels */
+        .sig_preview_box {
+            max-height: 80px;
+            margin-top: 12px;
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 8px;
+            display: none;
+            background-color: #f8fafc;
+        }
+
+        .live-totals-panel {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.05rem;
+            margin-bottom: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .totals-row.grand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            border-top: 2px dashed var(--border-color);
+            padding-top: 16px;
+            margin-top: 4px;
+            margin-bottom: 0;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            body {
+                flex-direction: column;
+                height: 100vh;
+            }
+
+            .sidebar {
+                width: 100%;
+                flex-direction: row;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                height: auto;
+            }
+
+            .sidebar h2 {
+                display: none;
+            }
+
+            .tab-btn {
+                white-space: nowrap;
+                padding: 16px 20px;
+                border-left: none;
+                border-bottom: 3px solid transparent;
+            }
+
+            .tab-btn.active {
+                border-left: none;
+                border-bottom: 3px solid var(--accent-color);
+                background-color: rgba(59, 130, 246, 0.1);
+            }
+
+            .main-content {
+                padding: 20px;
+                height: calc(100vh - 55px);
+            }
+
+            .tab-content {
+                padding: 20px;
+            }
+
+            .table-input {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .live-totals-panel {
+                margin-left: 0;
+                max-width: 100%;
+            }
+        }
+
+        /* PDF TEMPLATE STYLES */
+        #pdf-render-wrapper {
+            display: none;
+        }
+
+        .invoice-page {
+            background: white;
+            color: black;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            width: 210mm;
+            height: 296mm;
+            /* Symmetrical margins on left and right (10mm) */
+            padding: 8mm 10mm 12mm 10mm;
+            box-sizing: border-box;
+            line-height: 1.3;
+            display: flex;
+            flex-direction: column;
+            page-break-after: always;
+        }
+
+        .invoice-page:last-child {
+            page-break-after: auto;
+        }
+
+        .pdf-master-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+            border: 1px solid #999;
+        }
+
+        .pdf-master-table th,
+        .pdf-master-table td {
+            border: 1px solid #999;
+            padding: 5px 6px;
+            vertical-align: top;
+        }
+
+        .products-wrapper {
+            flex-grow: 1;
+            margin-bottom: 0px;
+        }
+
+        .products-table-pdf {
+            height: 100%;
+            border: 1px solid #999;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .products-table-pdf th,
+        .products-table-pdf td {
+            border: 1px solid #999;
+            padding: 5px 6px;
+        }
+
+        .products-table-pdf th {
+            height: 25px;
+        }
+
+        .products-table-pdf tbody tr {
+            height: auto;
+        }
+
+        /* Clean borders in Item Grid */
+        /* For Proforma and PO: remove horizontal, keep vertical */
+        .bind-item_body td,
+        .po-bind-item_body td {
+            border-top: none !important;
+            border-bottom: none !important;
+            border-left: 1px solid #999 !important;
+            border-right: 1px solid #999 !important;
+        }
+
+        .bind-item_body td:first-child,
+        .po-bind-item_body td:first-child {
+            border-left: 1px solid #999 !important;
+        }
+
+        .bind-item_body td:last-child,
+        .po-bind-item_body td:last-child {
+            border-right: 1px solid #999 !important;
+        }
+
+        /* For Commercial Invoice & Packing List: remove BOTH horizontal and vertical internally */
+        .ci-bind-item_body td,
+        .pl-bind-item_body td,
+        .pl-bind-footer_rows td {
+            border: none !important;
+        }
+
+        .ci-bind-item_body td:first-child,
+        .pl-bind-item_body td:first-child,
+        .pl-bind-footer_rows td:first-child {
+            border-left: 1px solid #999 !important;
+        }
+
+        .ci-bind-item_body td:last-child,
+        .pl-bind-item_body td:last-child,
+        .pl-bind-footer_rows td:last-child {
+            border-right: 1px solid #999 !important;
+        }
+
+        .pdf-center {
+            text-align: center;
+        }
+
+        .pdf-right {
+            text-align: right;
+        }
+
+        .col-50 {
+            width: 50%;
+        }
+
+        .pre-line {
+            white-space: pre-wrap;
+        }
+
+        .border-bottom-none {
+            border-bottom: none !important;
+        }
+
+        .border-top-none {
+            border-top: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h2>Shivansh International</h2>
+        <button class="tab-btn active" onclick="openTab('dashboard')">Dashboard</button>
+        <button class="tab-btn" onclick="openTab('proforma')">Proforma Invoice</button>
+        <button class="tab-btn" onclick="openTab('commercial')">Commercial Invoice</button>
+        <button class="tab-btn" onclick="openTab('packing')">Packing List</button>
+        <button class="tab-btn" onclick="openTab('purchase')">Purchase Order</button>
+    </div>
+
+    <div class="main-content">
+
+        <div id="dashboard" class="tab-content active">
+            <h3>Dashboard</h3>
+            <div class="dashboard-cards">
+                <div class="dash-card" onclick="openTab('proforma')">
+                    <div class="dash-icon">📄</div>
+                    <h4>Proforma Invoice</h4>
+                    <p>Create a preliminary bill of sale sent to buyers in advance of a shipment or delivery of goods.
+                    </p>
+                </div>
+                <div class="dash-card" onclick="openTab('commercial')">
+                    <div class="dash-icon">📑</div>
+                    <h4>Commercial Invoice</h4>
+                    <p>Generate export invoices for customs declaration detailing the price, value, and quantity of
+                        goods.</p>
+                </div>
+                <div class="dash-card" onclick="openTab('packing')">
+                    <div class="dash-icon">📦</div>
+                    <h4>Packing List</h4>
+                    <p>Create detailed packing lists specifying contents, dimensions, and weights for shipping.</p>
+                </div>
+                <div class="dash-card" onclick="openTab('purchase')">
+                    <div class="dash-icon">🛒</div>
+                    <h4>Purchase Order</h4>
+                    <p>Generate formal requests to vendors for purchasing goods or services.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="proforma" class="tab-content">
+        <h3>Generate Proforma Invoice</h3>
+
+        <h4>Seller Details</h4>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Company Name *</label>
+                <select id="s_name" onchange="updateSellerDetails()">
+                    <option value="Spotdeal Enterprises" selected>Spotdeal Enterprises</option>
+                    <option value="Shivansh International">Shivansh International</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Contact Person *</label><input type="text" id="s_contact" value="Priya Paul">
+            </div>
+            <div class="form-group"><label>Mobile / Phone</label><input type="text" id="s_mobile"
+                    value="+91 9874525414"></div>
+            <div class="form-group"><label>Email Address</label><input type="text" id="s_email"
+                    value="spotdealenterprises@gmail.com"></div>
+            <div class="form-group full-width"><label>Full Address *</label><input type="text" id="s_address"
+                    value="Metropolitan CZ-20B, Canal South Road, Kol-700105"></div>
+            <div class="form-group full-width">
+                <label>Authorized Signatory Signature (Image) *</label>
+                <input type="file" id="s_signature" accept="image/*">
+                <div><img id="sig_preview" class="sig_preview_box" src="" alt="Signature Preview"></div>
+            </div>
+        </div>
+
+        <h4>Buyer Details</h4>
+        <div class="form-grid">
+            <div class="form-group"><label>Buyer Company Name *</label><input type="text" id="b_name"
+                    value="Sc Adigherin Srl Company"></div>
+            <div class="form-group"><label>Buyer Contact Person *</label><input type="text" id="b_contact"
+                    value="Ilasi Florin"></div>
+            <div class="form-group"><label>Buyer Mobile</label><input type="text" id="b_mobile" value="+40720047016">
+            </div>
+            <div class="form-group"><label>Buyer Email</label><input type="text" id="b_email"
+                    value="adigherin@example.com"></div>
+            <div class="form-group full-width"><label>Buyer Address & VAT *</label><input type="text" id="b_address"
+                    value="RO 11360510 nr. VAT J35/17/1999 Timisoara city Romania"></div>
+        </div>
+
+        <h4>Shipping & Invoice Details</h4>
+        <div class="form-grid">
+            <div class="form-group"><label>Invoice Number *</label><input type="text" id="inv_number" value="TN004">
+            </div>
+            <div class="form-group"><label>Date *</label><input type="date" id="inv_date" readonly></div>
+
+            <div class="form-group">
+                <label>Currency</label>
+                <select id="currency">
+                    <option value="EUR|€" selected>Euro (EUR - €)</option>
+                    <option value="USD|$">US Dollar (USD - $)</option>
+                    <option value="GBP|£">British Pound (GBP - £)</option>
+                    <option value="INR|₹">Indian Rupee (INR - ₹)</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Port of Loading *</label><input type="text" id="port_load"
+                    value="Kolkata (EX Calcutta) (INCCU), INDIA"></div>
+            <div class="form-group"><label>Port of Discharge *</label><input type="text" id="port_discharge"
+                    value="CONSTANTA, ROMANIA"></div>
+            <div class="form-group"><label>Method Of Dispatch *</label><input type="text" id="dispatch" value="SEA">
+            </div>
+            <div class="form-group"><label>Incoterms *</label><input type="text" id="incoterm" value="FOB"></div>
+            <div class="form-group"><label>Delivery Date *</label><input type="date" id="del_date"></div>
+        </div>
+
+        <h4>Financial Terms & Bank Details</h4>
+        <div class="form-grid">
+            <div class="form-group full-width"><label>Payment Terms *</label><textarea id="pay_terms"
+                    rows="2">50% Advance and 50% Before Delivery</textarea></div>
+            <div class="form-group full-width"><label>Additional Info</label><textarea id="add_info"
+                    rows="2"></textarea></div>
+            <div class="form-group full-width"><label>Bank Details *</label><textarea id="bank_details" rows="6">Account Name: Shivansh International
+Account No: 50200118150539
+Swift Code: HDFCINBBCAL
+Branch Name: Metropolitan
+Address: HDFC BANK Ltd, Premises No A/P 12, B Canal South
+Ground First Floor, Metropolitan Kolkata - 700105</textarea></div>
+        </div>
+
+        <h4>Products</h4>
+        <table class="table-input" id="product-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Description *</th>
+                    <th>Quantity *</th>
+                    <th>Unit Price *</th>
+                    <th>Total Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="product-body">
+                <tr>
+                    <td><input type="text" class="p_code" value="001"></td>
+                    <td><input type="text" class="p_desc" value="Gents Black Cow Nappa Leather Wallet"></td>
+                    <td><input type="number" class="p_qty" value="1300" min="0"></td>
+                    <td><input type="number" step="0.01" class="p_price" value="3.5" min="0"></td>
+                    <td><strong class="row-total">4550.00</strong></td>
+                    <td><button class="btn btn-remove" onclick="removeRow(this, 'proforma')">X</button></td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr style="background-color: #f8f9fa;">
+                    <td colspan="4" style="text-align: right; font-weight: bold; padding-right: 15px;">Subtotal:
+                    </td>
+                    <td style="color: var(--primary-color); font-size: 1.1rem;"><strong
+                            id="grid_subtotal_ui">€0.00</strong></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+        <button class="btn btn-add" onclick="addRow('proforma')">+ Add Product</button>
+
+        <div class="form-grid" style="border-top: 1px solid #ddd; padding-top: 20px;">
+            <div class="form-group"><label>Shipping & Handling Charges</label><input type="number" id="ship_charge"
+                    value="0" step="0.01" min="0"></div>
+            <div class="form-group"><label>Other Cost</label><input type="number" id="other_cost" value="0" step="0.01"
+                    min="0"></div>
+        </div>
+
+        <div class="live-totals-panel">
+            <div class="totals-row"><span>Subtotal:</span><span id="ui_subtotal">€0.00</span></div>
+            <div class="totals-row grand"><span>Grand Total:</span><span id="ui_grandtotal">€0.00</span></div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+            <button class="btn" onclick="validateAndGeneratePDF()">Generate Proforma PDF</button>
+        </div>
+    </div>
+
+    <div id="commercial" class="tab-content">
+        <h3>Generate Commercial (Export) Invoice</h3>
+
+        <h4>Exporter Details</h4>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Exporter Name *</label>
+                <select id="ci_s_name" onchange="updateCISellerDetails()">
+                    <option value="Spotdeal Enterprises" selected>Spotdeal Enterprises</option>
+                    <option value="Shivansh International">Shivansh International</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Contact Person *</label><input type="text" id="ci_s_contact"
+                    value="Priya Paul"></div>
+            <div class="form-group"><label>Mobile</label><input type="text" id="ci_s_mobile" value="(+91)9874525414">
+            </div>
+            <div class="form-group"><label>Email Address</label><input type="text" id="ci_s_email"
+                    value="spotdealenterprises@gmail.com"></div>
+            <div class="form-group full-width"><label>Full Address *</label><input type="text" id="ci_s_address"
+                    value="CZ-20B, Metropolitan Co-operative Housing Society Ltd. KOLKATA 700105"></div>
+
+            <div class="form-group"><label>GSTIN *</label><input type="text" id="ci_s_gstin" value="19ELHPP5387P1ZW">
+            </div>
+            <div class="form-group"><label>IEC *</label><input type="text" id="ci_s_iec" value="ELHPP5387P"></div>
+            <div class="form-group"><label>A.D CODE *</label><input type="text" id="ci_s_ad_code" value="051012A">
+            </div>
+            <div class="form-group"><label>REX Number</label><input type="text" id="ci_s_rex"
+                    value="INREXELHPP5387PEC029"></div>
+            <div class="form-group full-width">
+                <label>Authorized Signatory Signature (Image) *</label>
+                <input type="file" id="ci_signature" accept="image/*">
+                <div><img id="ci_sig_preview" class="sig_preview_box" src="" alt="Signature Preview"></div>
+            </div>
+        </div>
+
+        <h4>Consignee / Buyer Details</h4>
+        <div class="form-grid">
+            <div class="form-group"><label>Consignee Name *</label><input type="text" id="ci_b_name"
+                    value="Sc Adigherin Srl Company"></div>
+            <div class="form-group"><label>Contact Person *</label><input type="text" id="ci_b_contact"
+                    value="Ilasi Florin"></div>
+            <div class="form-group"><label>Mobile</label><input type="text" id="ci_b_mobile" value="+40720047016">
+            </div>
+            <div class="form-group"><label>GSTIN / VAT *</label><input type="text" id="ci_b_vat"
+                    value="RO 11360510 J35/17/1999"></div>
+            <div class="form-group full-width"><label>Consignee Address *</label><input type="text" id="ci_b_address"
+                    value="RO 11360510 nr.VAT J35/17/1999 Timisoara city Romania"></div>
+            <div class="form-group full-width"><label>Delivery Address *</label><input type="text" id="ci_d_address"
+                    value="Romania, Timis, Giroc strada Muncitorilor nr. 83C, Postal cod 307220"></div>
+        </div>
+
+        <h4>Shipping & Invoice Details</h4>
+        <div class="form-grid">
+            <div class="form-group"><label>Invoice Number *</label><input type="text" id="ci_inv_number" value="TN004">
+            </div>
+            <div class="form-group"><label>Date *</label><input type="date" id="ci_inv_date" readonly></div>
+            <div class="form-group">
+                <label>Currency</label>
+                <select id="ci_currency">
+                    <option value="EUR|€" selected>Euro (EUR - €)</option>
+                    <option value="USD|$">US Dollar (USD - $)</option>
+                    <option value="GBP|£">British Pound (GBP - £)</option>
+                    <option value="INR|₹">Indian Rupee (INR - ₹)</option>
+                </select>
+            </div>
+
+            <div class="form-group"><label>Pre-Carriage by *</label><input type="text" id="ci_pre_carriage"
+                    value="BY ROAD"></div>
+            <div class="form-group"><label>Place of receipt by pre-carrier *</label><input type="text"
+                    id="ci_receipt_place" value="KOLKATA"></div>
+            <div class="form-group"><label>Vessel/Flight No. *</label><input type="text" id="ci_vessel" value="BY Sea">
+            </div>
+            <div class="form-group"><label>Port of Loading *</label><input type="text" id="ci_port_load"
+                    value="KOLKATA(INCCU1)"></div>
+            <div class="form-group"><label>Port of Discharge *</label><input type="text" id="ci_port_discharge"
+                    value="Constanta, ROMANIA"></div>
+            <div class="form-group"><label>Final Port of Delivery *</label><input type="text" id="ci_final_dest"
+                    value="CONSTANTA, ROMANIA"></div>
+
+            <div class="form-group"><label>Country of Origin of goods *</label><input type="text" id="ci_origin"
+                    value="INDIA"></div>
+            <div class="form-group"><label>Country of Final Destination *</label><input type="text" id="ci_destination"
+                    value="ROMANIA"></div>
+        </div>
+
+        <h4>Products & Additional Summaries</h4>
+        <div class="form-grid">
+            <div class="form-group full-width"><label>Terms of Delivery and Payment *</label><input type="text"
+                    id="ci_terms" value="FOB, 50% ADVANCE 50% BEFORE DISPATCH"></div>
+            <div class="form-group"><label>LUT ARN NO</label><input type="text" id="ci_lut" value="AD190226012959Q">
+            </div>
+            <div class="form-group full-width">
+                <label>Dimension Summary</label>
+                <textarea id="ci_dimension" rows="3">DIMENSION OF 1-40 CTNS IN INCH: (27.5 X 14.5 X 12.5)</textarea>
+            </div>
+            <div class="form-group full-width"><label>Total Quantity & Weight Text</label><input type="text"
+                    id="ci_total_text" value="TOTAL QUANTITY-40 CTNS TOTAL WEIGHT- 712 KGS"></div>
+        </div>
+
+        <table class="table-input" id="ci-product-table">
+            <thead>
+                <tr>
+                    <th>Marks & Nos.</th>
+                    <th>Description *</th>
+                    <th>Qty (Pcs) *</th>
+                    <th>Net Wt. (Kgs)</th>
+                    <th>HSN Code</th>
+                    <th>Rate *</th>
+                    <th>Amount</th>
+                    <th>Act</th>
+                </tr>
+            </thead>
+            <tbody id="ci-product-body">
+                <tr>
+                    <td><input type="text" class="ci_p_marks" value="SPD"></td>
+                    <td><input type="text" class="ci_p_desc" value="Gents Black Cow Nappa Leather Wallet"></td>
+                    <td><input type="number" class="ci_p_qty" value="1300" min="0"></td>
+                    <td><input type="number" class="ci_p_wt" value="232" min="0"></td>
+                    <td><input type="text" class="ci_p_hsn" value="42023120"></td>
+                    <td><input type="number" step="0.01" class="ci_p_price" value="3.5" min="0"></td>
+                    <td><strong class="ci-row-total">4550.00</strong></td>
+                    <td><button class="btn btn-remove" onclick="removeRow(this, 'ci')">X</button></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="ci_p_marks" value=""></td>
+                    <td><input type="text" class="ci_p_desc" value="Gents Brown Cow Nappa Leather Wallet"></td>
+                    <td><input type="number" class="ci_p_qty" value="400" min="0"></td>
+                    <td><input type="number" class="ci_p_wt" value="73" min="0"></td>
+                    <td><input type="text" class="ci_p_hsn" value="42023120"></td>
+                    <td><input type="number" step="0.01" class="ci_p_price" value="3.5" min="0"></td>
+                    <td><strong class="ci-row-total">1400.00</strong></td>
+                    <td><button class="btn btn-remove" onclick="removeRow(this, 'ci')">X</button></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="ci_p_marks" value=""></td>
+                    <td><input type="text" class="ci_p_desc" value="Gents Brown Cow Hunter Leather Wallet"></td>
+                    <td><input type="number" class="ci_p_qty" value="1600" min="0"></td>
+                    <td><input type="number" class="ci_p_wt" value="283" min="0"></td>
+                    <td><input type="text" class="ci_p_hsn" value="42023120"></td>
+                    <td><input type="number" step="0.01" class="ci_p_price" value="3.5" min="0"></td>
+                    <td><strong class="ci-row-total">5600.00</strong></td>
+                    <td><button class="btn btn-remove" onclick="removeRow(this, 'ci')">X</button></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="ci_p_marks" value=""></td>
+                    <td><input type="text" class="ci_p_desc" value="Gents Brown Buff Hunter Leather Wallet"></td>
+                    <td><input type="number" class="ci_p_qty" value="500" min="0"></td>
+                    <td><input type="number" class="ci_p_wt" value="88" min="0"></td>
+                    <td><input type="text" class="ci_p_hsn" value="42023120"></td>
+                    <td><input type="number" step="0.01" class="ci_p_price" value="4" min="0"></td>
+                    <td><strong class="ci-row-total">2000.00</strong></td>
+                    <td><button class="btn btn-remove" onclick="removeRow(this, 'ci')">X</button></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="ci_p_marks" value=""></td>
+                    <td><input type="text" class="ci_p_desc" value="Gents Brown Cow Oil Pullup Leather Wallet"></td>
+                    <td><input type="number" class="ci_p_qty" value="200" min="0"></td>
+                    <td><input type="number" class="ci_p_wt" value="36" min="0"></td>
+                    <td><input type="text" class="ci_p_hsn" value="42023120"></td>
+                    <td><input type="number" step="0.01" class="ci_p_price" value="4" min="0"></td>
+                    <td><strong class="ci-row-total">800.00</strong></td>
+                    <td><button class="btn btn-remove" onclick="removeRow(this, 'ci')">X</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="btn btn-add" onclick="addRow('ci')">+ Add Item</button>
+
+        <div class="form-grid" style="border-top: 1px solid #ddd; padding-top: 20px;">
+            <div class="form-group"><label>Freight</label><input type="number" id="ci_freight" value="0" step="0.01"
+                    min="0"></div>
+            <div class="form-group"><label>Insurance</label><input type="number" id="ci_insurance" value="0" step="0.01"
+                    min="0"></div>
+            <div class="form-group"><label>Discount</label><input type="number" id="ci_discount" value="0" step="0.01"
+                    min="0"></div>
+        </div>
+
+        <div class="live-totals-panel" style="max-width: 500px;">
+            <div class="totals-row"><span>Product Subtotal:</span><span id="ci_ui_subtotal">€14350.00</span></div>
+            <div class="totals-row grand"><span>Grand Total:</span><span id="ci_ui_grandtotal">€14350.00</span>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+            <button class="btn" onclick="validateAndGenerateCI_PDF()">Generate Export Invoice PDF</button>
+        </div>
+    </div>
+
+    <div id="packing" class="tab-content">
+        <h3>Generate Packing List</h3>
+
+        <h4>Exporter Details</h4>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Exporter Name *</label>
+                <select id="pl_s_name" onchange="updatePLSellerDetails()">
+                    <option value="Spotdeal Enterprises" selected>Spotdeal Enterprises</option>
+                    <option value="Shivansh International">Shivansh International</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Contact Person *</label><input type="text" id="pl_s_contact"
+                    value="Priya Paul"></div>
+            <div class="form-group"><label>Mobile</label><input type="text" id="pl_s_mobile" value="(+91)9874525414">
+            </div>
+            <div class="form-group"><label>Email Address</label><input type="text" id="pl_s_email"
+                    value="spotdealenterprises@gmail.com"></div>
+            <div class="form-group full-width"><label>Full Address *</label><input type="text" id="pl_s_address"
+                    value="CZ-20B, Metropolitan Co-operative Housing Society Ltd. KOLKATA 700105"></div>
+
+            <div class="form-group"><label>GSTIN *</label><input type="text" id="pl_s_gstin" value="19ELHPP5387P1ZW">
+            </div>
+            <div class="form-group"><label>IEC *</label><input type="text" id="pl_s_iec" value="ELHPP5387P"></div>
+            <div class="form-group"><label>A.D CODE *</label><input type="text" id="pl_s_ad_code" value="051012A">
+            </div>
+            <div class="form-group"><label>REX Number</label><input type="text" id="pl_s_rex"
+                    value="INREXELHPP5387PEC029"></div>
+            <div class="form-group full-width">
+                <label>Authorized Signatory Signature (Image) *</label>
+                <input type="file" id="pl_signature" accept="image/*">
+                <div><img id="pl_sig_preview" class="sig_preview_box" src="" alt="Signature Preview"></div>
+            </div>
+        </div>
+
+        <h4>Consignee / Buyer Details</h4>
+        <div class="form-grid">
+            <div class="form-group"><label>Consignee Name *</label><input type="text" id="pl_b_name"
+                    value="Sc Adigherin Srl Company"></div>
+            <div class="form-group"><label>Contact Person *</label><input type="text" id="pl_b_contact"
+                    value="Ilasi Florin"></div>
+            <div class="form-group"><label>Mobile</label><input type="text" id="pl_b_mobile" value="+40720047016">
+            </div>
+            <div class="form-group"><label>GSTIN / VAT *</label><input type="text" id="pl_b_vat"
+                    value="RO 11360510 J35/17/1999"></div>
+            <div class="form-group full-width"><label>Consignee Address *</label><input type="text" id="pl_b_address"
+                    value="RO 11360510 nr.VAT J35/17/1999 Timisoara city Romania"></div>
+            <div class="form-group full-width"><label>Delivery Address *</label><input type="text" id="pl_d_address"
+                    value="Romania, Timiş, Giroc strada Muncitorilor nr. 83C, Postal cod 307220"></div>
+        </div>
+
+        <h4>Shipping Details</h4>
+        <div class="form-grid">
+            <div class="form-group"><label>Invoice Number *</label><input type="text" id="pl_inv_number" value="TN004">
+            </div>
+            <div class="form-group"><label>Date *</label><input type="date" id="pl_inv_date" readonly></div>
+
+            <div class="form-group"><label>Pre-Carriage by *</label><input type="text" id="pl_pre_carriage"
+                    value="BY ROAD"></div>
+            <div class="form-group"><label>Place of receipt by pre-carrier *</label><input type="text"
+                    id="pl_receipt_place" value="KOLKATA"></div>
+            <div class="form-group"><label>Vessel/Flight No. *</label><input type="text" id="pl_vessel" value="BY Sea">
+            </div>
+            <div class="form-group"><label>Port of Loading *</label><input type="text" id="pl_port_load"
+                    value="KOLKATA(INCCU1)"></div>
+            <div class="form-group"><label>Port of Discharge *</label><input type="text" id="pl_port_discharge"
+                    value="CONSTANTA, ROMANIA"></div>
+            <div class="form-group"><label>Final Port of Delivery *</label><input type="text" id="pl_final_dest"
+                    value="CONSTANTA, ROMANIA"></div>
+
+            <div class="form-group"><label>Country of Origin of goods *</label><input type="text" id="pl_origin"
+                    value="INDIA"></div>
+            <div class="form-group"><label>Country of Final Destination *</label><input type="text" id="pl_destination"
+                    value="ROMANIA"></div>
+        </div>
+
+        <h4>Products & Additional Summaries</h4>
+        <div class="form-grid">
+            <div class="form-group full-width"><label>Terms of Delivery and Payment *</label><input type="text"
+                    id="pl_terms" value="FOB, 50% Advance 50% Before Dispatch"></div>
+            <div class="form-group"><label>LUT ARN NO</label><input type="text" id="pl_lut" value="AD190226012959Q">
+            </div>
+            <div class="form-group full-width">
+                <label>Dimension Summary</label>
+                <textarea id="pl_dimension" rows="3">DIMENSION OF 1-40 CTNS IN INCH: (27.5 X 14.5 X 12.5)</textarea>
+            </div>
+            <div class="form-group full-width"><label>HSN Code (For Declaration)</label><input type="text" id="pl_hsn"
+                    value="42023120"></div>
+        </div>
+
+        <table class="table-input" id="pl-product-table">
+            <thead>
+                <tr>
+                    <th>Marks & Nos.</th>
+                    <th>Packages</th>
+                    <th>Description *</th>
+                    <th>Qty (Pcs) *</th>
+                    <th>Net Wt. *</th>
+                    <th>Gross Wt. *</th>
+                    <th>Act</th>
+                </tr>
+            </thead>
+            <tbody id="pl-product-body">
+                <tr>
+                    <td><input type="text" class="pl_p_marks" value="SPD"></td>
+                    <td><input type="text" class="pl_p_pkgs" value="1-13 Black Color"></td>
+                    <td><input type="text" class="pl_p_desc" value="Gents Black Cow Nappa Leather Wallet"></td>
+                    <td><input type="number" class="pl_p_qty" value="1300" min="0"></td>
+                    <td><input type="number" step="0.01" class="pl_p_nwt" value="218" min="0"></td>
+                    <td><input type="number" step="0.01" class="pl_p_gwt" value="232" min="0"></td>
+                    <td><button class="btn btn-remove" onclick="removeRow(this, 'pl')">X</button></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="pl_p_marks" value=""></td>
+                    <td><input type="text" class="pl_p_pkgs" value="14-17 Brown Color"></td>
+                    <td><input type="text" class="pl_p_desc" value="Gents Brown Cow Nappa Leather Wallet"></td>
+                    <td><input type="number" class="pl_p_qty" value="400" min="0"></td>
+                    <td><input type="number" step="0.01" class="pl_p_nwt" value="68" min="0"></td>
+                    <td><input type="number" step="0.01" class="pl_p_gwt" value="73" min="0"></td>
+                    <td><button class="btn btn-remove" onclick="removeRow(this, 'pl')">X</button></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="pl_p_marks" value=""></td>
+                    <td><input type="text" class="pl_p_pkgs" value="18-33 Brown Color"></td>
+                    <td><input type="text" class="pl_p_desc" value="Gents Brown Cow Hunter Leather Wallet"></td>
+                    <td><input type="number" class="pl_p_qty" value="1600" min="0"></td>
+                    <td><input type="number" step="0.01" class="pl_p_nwt" value="265" min="0"></td>
+                    <td><input type="number" step="0.01" class="pl_p_gwt" value="283" min="0"></td>
+                    <td><button class="btn btn-remove" onclick="removeRow(this, 'pl')">X</button></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="pl_p_marks" value=""></td>
+                    <td><input type="text" class="pl_p_pkgs" value="34-38 Brown Color"></td>
+                    <td><input type="text" class="pl_p_desc" value="Gents Brown Buff Hunter Leather Wallet"></td>
+                    <td><input type="number" class="pl_p_qty" value="500" min="0"></td>
+                    <td><input type="number" step="0.01" class="pl_p_nwt" value="76" min="0"></td>
+                    <td><input type="number" step="0.01" class="pl_p_gwt" value="88" min="0"></td>
+                    <td><button class="btn btn-remove" onclick="removeRow(this, 'pl')">X</button></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="pl_p_marks" value=""></td>
+                    <td><input type="text" class="pl_p_pkgs" value="39-40 Brown Color"></td>
+                    <td><input type="text" class="pl_p_desc" value="Gents Brown Cow Oil Pullup Leather Wallet"></td>
+                    <td><input type="number" class="pl_p_qty" value="200" min="0"></td>
+                    <td><input type="number" step="0.01" class="pl_p_nwt" value="33" min="0"></td>
+                    <td><input type="number" step="0.01" class="pl_p_gwt" value="36" min="0"></td>
+                    <td><button class="btn btn-remove" onclick="removeRow(this, 'pl')">X</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="btn btn-add" onclick="addRow('pl')">+ Add Item</button>
+
+        <div class="live-totals-panel" style="max-width: 500px;">
+            <div class="totals-row"><span>Total Quantity:</span><span id="pl_ui_qty">4000</span></div>
+            <div class="totals-row"><span>Total Net Wt:</span><span id="pl_ui_nwt">660</span></div>
+            <div class="totals-row grand"><span>Total Gross Wt:</span><span id="pl_ui_gwt">712</span></div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+            <button class="btn" onclick="validateAndGeneratePL_PDF()">Generate Packing List PDF</button>
+        </div>
+    </div>
+
+    <div id="purchase" class="tab-content">
+        <h3>Generate Purchase Order</h3>
+
+        <h4>Vendor Details</h4>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Vendor Name *</label>
+                <select id="po_v_name" onchange="updatePOVendorDetails()">
+                    <option value="Spotdeal Enterprises" selected>Spotdeal Enterprises</option>
+                    <option value="Shivansh International">Shivansh International</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Vendor Contact Person *</label><input type="text" id="po_v_contact"
+                    value="Priya Paul"></div>
+            <div class="form-group"><label>Vendor Mobile (Optional)</label><input type="text" id="po_v_mobile"
+                    value="+91 9874525414"></div>
+            <div class="form-group"><label>Vendor Email (Optional)</label><input type="text" id="po_v_email"
+                    value="spotdealenterprises@gmail.com"></div>
+            <div class="form-group full-width"><label>Vendor Full Address *</label><input type="text" id="po_v_address"
+                    value="Metropolitan CZ-20B Canal South Road, Kolkata - 700105"></div>
+        </div>
+
+        <h4>Customer Details</h4>
+        <div class="form-grid">
+            <div class="form-group"><label>Customer Name *</label><input type="text" id="po_c_name"
+                    value="Sc Adigherin Srl Company"></div>
+            <div class="form-group"><label>Customer Contact Person *</label><input type="text" id="po_c_contact"
+                    value="Ilasi Florin"></div>
+            <div class="form-group"><label>Customer Mobile (Optional)</label><input type="text" id="po_c_mobile"
+                    value="+40720047016"></div>
+            <div class="form-group"><label>Customer Email (Optional)</label><input type="text" id="po_c_email"
+                    value="adigherin@example.com"></div>
+            <div class="form-group full-width"><label>Customer Address *</label><input type="text" id="po_c_address"
+                    value="RO 11360510 nr. VAT J35/17/1999 Timisoara city Romania"></div>
+        </div>
+
+        <h4>Deliver To Details</h4>
+        <div class="form-grid">
+            <div class="form-group"><label>Delivery Name *</label><input type="text" id="po_d_name"
+                    value="Sc Adigherin Srl Company"></div>
+            <div class="form-group"><label>Delivery Contact Person *</label><input type="text" id="po_d_contact"
+                    value="Ilasi Florin"></div>
+            <div class="form-group"><label>Delivery Mobile (Optional)</label><input type="text" id="po_d_mobile"
+                    value="+40720047016"></div>
+            <div class="form-group full-width"><label>Delivery Address *</label><input type="text" id="po_d_address"
+                    value="Romania, Timiş, Giroc Strada Muncitorilor nr. 83C, Postal cod 307220"></div>
+        </div>
+
+        <h4>Shipping & Invoice Details</h4>
+        <div class="form-grid">
+            <div class="form-group"><label>Invoice Number *</label><input type="text" id="po_number" value="TN004">
+            </div>
+            <div class="form-group"><label>Date *</label><input type="date" id="po_date" readonly></div>
+            <div class="form-group">
+                <label>Currency *</label>
+                <select id="po_currency">
+                    <option value="EUR|€" selected>Euro (EUR - €)</option>
+                    <option value="USD|$">US Dollar (USD - $)</option>
+                    <option value="GBP|£">British Pound (GBP - £)</option>
+                    <option value="INR|₹">Indian Rupee (INR - ₹)</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Shipping Method *</label><input type="text" id="po_ship_method" value="SEA">
+            </div>
+            <div class="form-group"><label>Shipping Term *</label><input type="text" id="po_ship_term" value="FOB">
+            </div>
+            <div class="form-group"><label>Delivery Date *</label><input type="date" id="po_del_date"></div>
+        </div>
+
+        <h4>Products</h4>
+        <table class="table-input" id="po-product-table">
+            <thead>
+                <tr>
+                    <th>Description *</th>
+                    <th>Quantity *</th>
+                    <th>Unit Price *</th>
+                    <th>Total Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="po-product-body">
+                <tr>
+                    <td><input type="text" class="po_p_desc" value="Gents Black Cow Nappa Leather Wallet"></td>
+                    <td><input type="number" class="po_p_qty" value="1300" min="0"></td>
+                    <td><input type="number" step="0.01" class="po_p_price" value="3.5" min="0"></td>
+                    <td><strong class="po-row-total">4550.00</strong></td>
+                    <td><button class="btn btn-remove" onclick="removeRow(this, 'purchase')">X</button></td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr style="background-color: #f8f9fa;">
+                    <td colspan="3" style="text-align: right; font-weight: bold; padding-right: 15px;">Subtotal:
+                    </td>
+                    <td style="color: var(--primary-color); font-size: 1.1rem;"><strong
+                            id="po_grid_subtotal_ui">€0.00</strong></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+        <button class="btn btn-add" onclick="addRow('purchase')">+ Add Item</button>
+
+        <div class="form-grid" style="border-top: 1px solid #ddd; padding-top: 20px;">
+            <div class="form-group"><label>Shipping & Handling Charges (Optional)</label><input type="number"
+                    id="po_ship_charge" value="0" step="0.01" min="0"></div>
+            <div class="form-group"><label>Other Cost (Optional)</label><input type="number" id="po_tax_cost" value="0"
+                    step="0.01" min="0"></div>
+        </div>
+
+        <h4>Footer Details & Signatures</h4>
+        <div class="form-grid">
+            <div class="form-group full-width"><label>Payment Terms *</label><textarea id="po_pay_terms"
+                    rows="2">50% Advance and 50% Before Delivery</textarea></div>
+            <div class="form-group">
+                <label>Customer Stamp (Optional)</label>
+                <input type="file" id="po_cust_stamp" accept="image/*">
+                <div><img id="po_cust_preview" class="sig_preview_box" src="" alt="Customer Stamp"></div>
+            </div>
+            <div class="form-group">
+                <label>Authorized Signatory Signature (Image) *</label>
+                <input type="file" id="po_signature" accept="image/*">
+                <div><img id="po_sig_preview" class="sig_preview_box" src="" alt="Vendor Signature"></div>
+            </div>
+        </div>
+
+        <div class="live-totals-panel">
+            <div class="totals-row"><span>Subtotal:</span><span id="po_ui_subtotal">€0.00</span></div>
+            <div class="totals-row grand"><span>Total Amount:</span><span id="po_ui_grandtotal">€0.00</span></div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+            <button class="btn" onclick="validateAndGeneratePO_PDF()">Generate P.O. PDF</button>
+        </div>
+    </div>
+    </div>
+
+    <div id="pdf-render-wrapper"></div>
+
+    <template id="invoice-page-template">
+        <div class="invoice-page">
+            <div id="top-section">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; font-family: 'Bookman Old Style', 'Arial', Arial, Arial; color: #0000CC;">
+                    <div style="text-align: left; width: 65%;">
+                        <h1 class="bind-head_name"
+                            style="margin: 0 0 2px 0; font-size: 24px; font-weight: bold; letter-spacing: 1px; line-height: 1;">
+                        </h1>
+                        <p style="margin: 2px 0; font-size: 12px;"><strong>Email:</strong> <span
+                                class="bind-head_email"></span><br><strong>Contact:</strong> <span
+                                class="bind-head_mobile"></span></p>
+                        <p style="margin: 2px 0; font-size: 12px;"><strong>Address:</strong> <span
+                                class="bind-head_address"></span></p>
+                    </div>
+                    <div
+                        style="text-align: right; width: 35%; font-size: 13px; display: flex; flex-direction: column; justify-content: flex-start; margin-top: 5px;">
+                        <p style="margin: 0;"><strong><span class="bind-head_page_num"></span></strong></p>
+                    </div>
+                </div>
+
+                <table class="pdf-master-table">
+                    <tr>
+                        <td class="col-50" rowspan="2">
+                            <strong>Seller Details</strong><br>
+                            <strong>Name:</strong> <span class="bind-s_name"></span><br>
+                            <strong>Address:</strong> <span class="bind-s_address"></span><br>
+                            <strong>Email:</strong> <span class="bind-s_email"></span><br>
+                            <strong>Contact Per:</strong> <span class="bind-s_contact"></span><br>
+                            <strong>Mobile No:</strong> <span class="bind-s_mobile"></span>
+                        </td>
+                        <td class="col-50 pdf-center" style="vertical-align: middle;">
+                            <strong style="font-size: 16px; letter-spacing: 1px;">PROFORMA INVOICE</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Invoice Number:</strong> <span class="bind-inv_number"></span><br><br>
+                            <strong>Date:</strong> <span class="bind-inv_date"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-50">
+                            <strong>Buyer Details</strong><br>
+                            <strong>Name:</strong> <span class="bind-b_name"></span><br>
+                            <strong>Address:</strong> <span class="bind-b_address"></span><br>
+                            <strong>Email:</strong> <span class="bind-b_email"></span><br>
+                            <strong>Contact Per:</strong> <span class="bind-b_contact"></span><br>
+                            <strong>Mobile No:</strong> <span class="bind-b_mobile"></span>
+                        </td>
+                        <td class="col-50" style="padding: 0;">
+                            <div style="padding: 5px 6px; border-bottom: 1px solid #999; min-height: 35px;">
+                                <strong>Port Of Loading:</strong> <span class="bind-port_load"></span>
+                            </div>
+                            <div style="padding: 5px 6px; min-height: 35px;">
+                                <strong>Port Of Discharge:</strong> <span class="bind-port_discharge"></span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="pdf-master-table">
+                    <tr style="background-color: #fcfcfc;">
+                        <th style="width: 25%;" class="pdf-center">Method Of Dispatch</th>
+                        <th style="width: 25%;" class="pdf-center">Incoterms</th>
+                        <th style="width: 25%;" class="pdf-center">Delivery Date</th>
+                        <th style="width: 25%;" class="pdf-center">Currency</th>
+                    </tr>
+                    <tr>
+                        <td class="pdf-center bind-dispatch"></td>
+                        <td class="pdf-center bind-incoterm"></td>
+                        <td class="pdf-center bind-del_date"></td>
+                        <td class="pdf-center dyn_curr_lbl"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="products-wrapper">
+                <table class="products-table-pdf">
+                    <thead>
+                        <tr style="background-color: #fcfcfc;">
+                            <th class="pdf-center" style="width: 12%;">Product Code</th>
+                            <th class="pdf-center" style="width: 48%;">Description</th>
+                            <th class="pdf-center" style="width: 10%; font-size: 11px;">Quantity (Pcs)</th>
+                            <th class="pdf-center" style="width: 15%; font-size: 11px;">Unit Price<br>(<span
+                                    class="dyn_curr_lbl"></span>)</th>
+                            <th class="pdf-center" style="width: 15%; font-size: 11px;">Total Amount<br>(<span
+                                    class="dyn_curr_lbl"></span>)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bind-item_body"></tbody>
+                </table>
+            </div>
+
+            <div id="bottom-section">
+                <table class="pdf-master-table" style="margin-bottom: 0;">
+                    <tr>
+                        <td rowspan="5" style="width: 60%; padding: 0; vertical-align: top;">
+                            <div style="padding: 6px; border-bottom: 1px solid #999; min-height: 40px;">
+                                <strong>Payment Terms</strong><br><span class="bind-pay_terms pre-line"></span>
+                            </div>
+                            <div style="padding: 6px; border-bottom: 1px solid #999; min-height: 40px;">
+                                <strong>Additional Info</strong><br><span class="bind-add_info pre-line"></span>
+                            </div>
+                            <div style="padding: 6px; min-height: 80px;">
+                                <strong>Bank Details</strong><br><span class="bind-bank_details pre-line"></span>
+                            </div>
+                        </td>
+                        <td style="width: 20%;"><strong>Subtotal (<span class="dyn_curr_lbl"></span>)</strong></td>
+                        <td style="width: 20%;" class="pdf-right"><span class="dyn_curr_sym"></span><span
+                                class="bind-subtotal"></span></td>
+                    </tr>
+                    <tr>
+                        <td>Shipping & Handling</td>
+                        <td class="pdf-right"><span class="dyn_curr_sym bind-sym_ship"></span><span
+                                class="bind-ship_charge"></span></td>
+                    </tr>
+                    <tr>
+                        <td>Other Cost</td>
+                        <td class="pdf-right"><span class="dyn_curr_sym bind-sym_other"></span><span
+                                class="bind-other_cost"></span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Grand Total (<span class="dyn_curr_lbl"></span>)</strong></td>
+                        <td class="pdf-right"><strong><span class="dyn_curr_sym"></span><span
+                                    class="bind-grandtotal"></span></strong></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"
+                            style="vertical-align: bottom; height: 110px; text-align: right; padding: 10px;">
+                            <div
+                                style="height: 80px; display: flex; justify-content: flex-end; align-items: center; margin-bottom: 5px;">
+                                <img class="bind-sig_img" src=""
+                                    style="max-height: 70px; max-width: 200px; display: none;">
+                            </div>
+                            <strong>Authorized Signatory</strong>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </template>
+
+    <template id="ci-page-template">
+        <div class="invoice-page">
+            <div style="text-align: center; margin-bottom: 8px;">
+                <div style="font-size: 18px; font-weight: bold; letter-spacing: 1px; margin-bottom: 2px;">EXPORT INVOICE
+                </div>
+                <div style="font-size: 10px; font-weight: bold;">"SUPPLY MEANT FOR EXPORT ON LUT"</div>
+            </div>
+
+            <div id="top-section">
+                <table class="pdf-master-table">
+                    <tr>
+                        <td class="col-50" rowspan="2" style="padding-right:15px; vertical-align:top;">
+                            <div style="display: flex; margin-bottom: 4px;">
+                                <strong style="width: 65px;">Exporter:</strong>
+                                <span class="ci-bind-s_name" style="flex-grow: 1;"></span>
+                            </div>
+                            <div style="display: flex; margin-bottom: 4px;">
+                                <strong style="width: 65px;">Address:</strong>
+                                <span class="ci-bind-s_address pre-line" style="flex-grow: 1;"></span>
+                            </div>
+                            <div style="display: flex; margin-bottom: 4px;">
+                                <strong style="width: 65px;">Email:</strong>
+                                <span class="ci-bind-s_email" style="flex-grow: 1;"></span>
+                            </div>
+                            <div style="display: flex;">
+                                <strong style="width: 65px;">Mobile:</strong>
+                                <span class="ci-bind-s_mobile" style="flex-grow: 1;"></span>
+                            </div>
+                        </td>
+                        <td class="col-50" style="padding: 5px 6px; vertical-align:top;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span><strong>Invoice No:</strong> <span class="ci-bind-inv_number"></span></span>
+                                <span><strong>Date:</strong> <span class="ci-bind-inv_date"></span></span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-50" style="padding: 5px 6px; vertical-align:top;">
+                            <strong>Other Reference(s):</strong><br>
+                            IEC: <span class="ci-bind-iec"></span><br>
+                            A.D CODE: <span class="ci-bind-ad_code"></span><br>
+                            <span class="ci-bind-lut-top"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-50" style="vertical-align:top;">
+                            <strong>Consignee:</strong> <span class="ci-bind-b_name"></span><br>
+                            <strong>Address:</strong> <span class="ci-bind-b_address pre-line"></span><br>
+                            <strong>Contact Per:</strong> <span class="ci-bind-b_contact"></span><br>
+                            <strong>Mobile:</strong> <span class="ci-bind-b_mobile"></span><br>
+                            <strong>GSTIN/VAT:</strong> <span class="ci-bind-b_vat"></span>
+                        </td>
+                        <td class="col-50" style="vertical-align:top;">
+                            <strong>Deliver To:</strong> <span class="ci-bind-d_name"></span><br>
+                            <strong>Address:</strong> <span class="ci-bind-d_address pre-line"></span><br>
+                            <strong>Contact Per:</strong> <span class="ci-bind-d_contact"></span><br>
+                            <strong>Mobile:</strong> <span class="ci-bind-d_mobile"></span>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="pdf-master-table">
+                    <tr>
+                        <td style="width: 25%;"><strong>Pre-Carriage by:</strong><br><span
+                                class="ci-bind-pre_carriage"></span></td>
+                        <td style="width: 25%;"><strong>Place of receipt by pre-carrier</strong><br><span
+                                class="ci-bind-receipt_place"></span></td>
+                        <td style="width: 25%;"><strong>Country of Origin of goods</strong><br><span
+                                class="ci-bind-origin"></span></td>
+                        <td style="width: 25%;"><strong>Country of Final Destination</strong><br><span
+                                class="ci-bind-destination"></span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Vessel/Flight No.</strong><br><span class="ci-bind-vessel"></span></td>
+                        <td><strong>Port of Loading</strong><br><span class="ci-bind-port_load"></span></td>
+                        <td colspan="2" rowspan="2" style="vertical-align: top;">
+                            <strong>Terms of Delivery and Payment:</strong><br>
+                            <span class="ci-bind-terms"></span><br><br>
+                            <strong>GSTIN:</strong> <span class="ci-bind-s_gstin"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Port of Discharge</strong><br><span class="ci-bind-port_discharge"></span></td>
+                        <td><strong>Final Port of Delivery</strong><br><span class="ci-bind-final_dest"></span></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="products-wrapper">
+                <table class="products-table-pdf" style="border-bottom: none;">
+                    <thead>
+                        <tr style="background-color: #fcfcfc;">
+                            <th class="pdf-center" style="width: 14%;">Marks & Nos.</th>
+                            <th class="pdf-center" style="width: 38%;">Description of Goods.</th>
+                            <th class="pdf-center" style="width: 10%;">Quantity<br>(Pcs)</th>
+                            <th class="pdf-center" style="width: 8%;">Net Wt.<br>(Kgs)</th>
+                            <th class="pdf-center" style="width: 10%;">HSN Code</th>
+                            <th class="pdf-center" style="width: 8%;">Rate<br>(<span class="ci-dyn_curr_lbl"></span>)
+                            </th>
+                            <th class="pdf-center" style="width: 12%;">Amount<br>(<span class="ci-dyn_curr_lbl"></span>)
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="ci-bind-item_body"></tbody>
+                </table>
+            </div>
+
+            <div class="bottom-section">
+                <table class="pdf-master-table" style="margin-bottom: 0;">
+                    <tr>
+                        <td style="width: 70%; padding: 10px 6px; vertical-align:top; border-top: 1px solid #999 !important;"
+                            rowspan="5">
+                            <div class="ci-bind-dim-display pre-line" style="margin-bottom: 4px; font-weight: normal;">
+                            </div>
+                            <div class="ci-bind-tot-display pre-line" style="font-weight: bold;"></div>
+                        </td>
+                        <td
+                            style="width: 15%; border-top: 1px solid #999 !important; border-left: 1px solid #999 !important;">
+                            Total (<span class="ci-dyn_curr_lbl"></span>):</td>
+                        <td style="width: 15%; border-top: 1px solid #999 !important;" class="pdf-right"><span
+                                class="ci-dyn_curr_sym"></span><span class="ci-bind-subtotal"></span></td>
+                    </tr>
+                    <tr>
+                        <td style="border-left: 1px solid #999 !important;">Freight</td>
+                        <td class="pdf-right"><span class="ci-bind-freight"></span></td>
+                    </tr>
+                    <tr>
+                        <td style="border-left: 1px solid #999 !important;">Insurance:</td>
+                        <td class="pdf-right"><span class="ci-bind-insurance"></span></td>
+                    </tr>
+                    <tr>
+                        <td style="border-left: 1px solid #999 !important;">Discount</td>
+                        <td class="pdf-right"><span class="ci-bind-discount"></span></td>
+                    </tr>
+                    <tr>
+                        <td style="border-left: 1px solid #999 !important; border-bottom: none;"><strong>G.Total (<span
+                                    class="ci-dyn_curr_lbl"></span>)</strong></td>
+                        <td class="pdf-right" style="border-bottom: none;"><strong><span
+                                    class="ci-dyn_curr_sym"></span><span class="ci-bind-grandtotal"></span></strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 10px; border-bottom: 1px solid #999; vertical-align: top;">
+                            <div style="margin-bottom: 8px;">
+                                <strong>Amount Chargeable in words:</strong> <span class="ci-bind-amount_words"></span>
+                            </div>
+                            <div
+                                style="border: 1px solid #999; padding: 10px; text-align: center; border-radius: 4px; font-size: 11px;">
+                                <strong>Declaration:</strong> The Exporter <span class="ci-bind-s_name"></span> REX
+                                Number:
+                                <span class="ci-bind-rex"></span>
+                                Date: <span class="ci-bind-inv_date"></span> of the products covered by this document
+                                declares that, except where otherwise clearly indicated, these products are of INDIAN
+                                Preferential origin of the generalised system of preferences of the European Union and
+                                that the origin criterion met is P (Products wholly obtain) HS Code <span
+                                    class="ci-bind-first-hsn"></span>
+                            </div>
+                        </td>
+                        <td colspan="2"
+                            style="vertical-align: bottom; text-align: right; padding: 10px; border-top: 1px solid #999; border-bottom: 1px solid #999; border-left: 1px solid #999 !important;">
+                            <div style="display:flex; justify-content: flex-end; align-items: flex-end; height: 100%;">
+                                <div style="text-align: right;">
+                                    <img class="ci-bind-sig_img" src=""
+                                        style="max-height: 70px; max-width: 200px; display: none; margin: 0 0 5px auto;"><br>
+                                    <strong>Authorized Signatory</strong>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </template>
+
+    <template id="pl-page-template">
+        <div class="invoice-page">
+            <div style="text-align: center; margin-bottom: 8px;">
+                <div style="font-size: 18px; font-weight: bold; letter-spacing: 1px; margin-bottom: 2px;">PACKING LIST
+                </div>
+                <div style="font-size: 10px; font-weight: bold;">"SUPPLY MEANT FOR EXPORT ON LUT"</div>
+            </div>
+
+            <div id="top-section">
+                <table class="pdf-master-table">
+                    <tr>
+                        <td class="col-50" rowspan="2" style="padding-right:15px; vertical-align:top;">
+                            <div style="display: flex; margin-bottom: 4px;">
+                                <strong style="width: 65px;">Exporter:</strong>
+                                <span class="pl-bind-s_name" style="flex-grow: 1;"></span>
+                            </div>
+                            <div style="display: flex; margin-bottom: 4px;">
+                                <strong style="width: 65px;">Address:</strong>
+                                <span class="pl-bind-s_address pre-line" style="flex-grow: 1;"></span>
+                            </div>
+                            <div style="display: flex; margin-bottom: 4px;">
+                                <strong style="width: 65px;">Email:</strong>
+                                <span class="pl-bind-s_email" style="flex-grow: 1;"></span>
+                            </div>
+                            <div style="display: flex;">
+                                <strong style="width: 65px;">Mobile:</strong>
+                                <span class="pl-bind-s_mobile" style="flex-grow: 1;"></span>
+                            </div>
+                        </td>
+                        <td class="col-50" style="padding: 5px 6px; vertical-align:top;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span><strong>Invoice No:</strong> <span class="pl-bind-inv_number"></span></span>
+                                <span><strong>Date:</strong> <span class="pl-bind-inv_date"></span></span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-50" style="padding: 5px 6px; vertical-align:top;">
+                            <strong>Other Reference(s):</strong><br>
+                            IEC: <span class="pl-bind-iec"></span><br>
+                            A.D CODE: <span class="pl-bind-ad_code"></span><br>
+                            <span class="pl-bind-lut-top"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-50" style="vertical-align:top;">
+                            <strong>Consignee:</strong> <span class="pl-bind-b_name"></span><br>
+                            <strong>Address:</strong> <span class="pl-bind-b_address pre-line"></span><br>
+                            <strong>Contact Per:</strong> <span class="pl-bind-b_contact"></span><br>
+                            <strong>Mobile:</strong> <span class="pl-bind-b_mobile"></span><br>
+                            <strong>GSTIN/VAT:</strong> <span class="pl-bind-b_vat"></span>
+                        </td>
+                        <td class="col-50" style="vertical-align:top;">
+                            <strong>Deliver To:</strong> <span class="pl-bind-d_name"></span><br>
+                            <strong>Address:</strong> <span class="pl-bind-d_address pre-line"></span><br>
+                            <strong>Contact Per:</strong> <span class="pl-bind-d_contact"></span><br>
+                            <strong>Mobile:</strong> <span class="pl-bind-d_mobile"></span>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="pdf-master-table">
+                    <tr>
+                        <td style="width: 25%;"><strong>Pre-Carriage by:</strong><br><span
+                                class="pl-bind-pre_carriage"></span></td>
+                        <td style="width: 25%;"><strong>Place of receipt by pre-carrier</strong><br><span
+                                class="pl-bind-receipt_place"></span></td>
+                        <td style="width: 25%;"><strong>Country of Origin of goods</strong><br><span
+                                class="pl-bind-origin"></span></td>
+                        <td style="width: 25%;"><strong>Country of Final Destination</strong><br><span
+                                class="pl-bind-destination"></span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Vessel/Flight No.</strong><br><span class="pl-bind-vessel"></span></td>
+                        <td><strong>Port of Loading</strong><br><span class="pl-bind-port_load"></span></td>
+                        <td colspan="2" rowspan="2" style="vertical-align: top;">
+                            <strong>Terms of Delivery and Payment:</strong><br>
+                            <span class="pl-bind-terms"></span><br><br>
+                            <strong>GSTIN:</strong> <span class="pl-bind-s_gstin"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Port of Discharge</strong><br><span class="pl-bind-port_discharge"></span></td>
+                        <td><strong>Final Port of Delivery</strong><br><span class="pl-bind-final_dest"></span></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="products-wrapper">
+                <table class="products-table-pdf" style="border-bottom: none;">
+                    <thead>
+                        <tr style="background-color: #fcfcfc;">
+                            <th class="pdf-center" style="width: 14%;">Marks & Nos.<br>Container.No.</th>
+                            <th class="pdf-center" style="width: 18%;">No. & Kind of<br>Packages.</th>
+                            <th class="pdf-center" style="width: 36%;">Description of Goods.</th>
+                            <th class="pdf-center" style="width: 10%;">Quantity<br>In Pcs</th>
+                            <th class="pdf-center" style="width: 11%;">NET<br>WEIGHT</th>
+                            <th class="pdf-center" style="width: 11%;">GROSS<br>WEIGHT</th>
+                        </tr>
+                    </thead>
+                    <tbody class="pl-bind-item_body"></tbody>
+                    <tfoot class="pl-bind-footer_rows">
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="bottom-section">
+                <table class="pdf-master-table" style="margin-bottom: 0;">
+                    <tr>
+                        <td
+                            style="padding: 10px 10px; border-bottom: 1px solid #999; vertical-align: top; border-top: none; width: 70%;">
+                            <div
+                                style="border: 1px solid #999; padding: 10px; text-align: center; border-radius: 4px; font-size: 11px;">
+                                <strong>Declaration:</strong> The Exporter <span class="pl-bind-s_name"></span> REX
+                                Number:
+                                <span class="pl-bind-rex"></span>
+                                Date: <span class="pl-bind-inv_date"></span> of the products covered by this document
+                                declares that, except where otherwise clearly indicated, these products are of INDIAN
+                                Preferential origin of the generalised system of preferences of the European Union and
+                                that the origin criterion met is P (Products wholly obtain) HS Code <span
+                                    class="pl-bind-hsn"></span>
+                            </div>
+                        </td>
+                        <td
+                            style="vertical-align: bottom; text-align: right; padding: 10px; border-top: none; border-bottom: 1px solid #999; border-left: 1px solid #999 !important; width: 30%;">
+                            <div style="display:flex; justify-content: flex-end; align-items: flex-end; height: 100%;">
+                                <div style="text-align: right;">
+                                    <img class="pl-bind-sig_img" src=""
+                                        style="max-height: 70px; max-width: 200px; display: none; margin: 0 0 5px auto;"><br>
+                                    <strong>Authorized Signatory</strong>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </template>
+
+    <template id="po-page-template">
+        <div class="invoice-page">
+            <div id="top-section">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; font-family: 'Bookman Old Style', 'Arial', Arial, Arial; color: #0000CC;">
+                    <div style="text-align: left; width: 65%;">
+                        <h1 class="po-bind-head_name"
+                            style="margin: 0 0 2px 0; font-size: 24px; font-weight: bold; letter-spacing: 1px; line-height: 1;">
+                        </h1>
+                        <p style="margin: 2px 0; font-size: 12px;"><strong>Email:</strong> <span
+                                class="po-bind-head_email"></span><br><strong>Contact:</strong> <span
+                                class="po-bind-head_mobile"></span></p>
+                        <p style="margin: 2px 0; font-size: 12px;"><strong>Address:</strong> <span
+                                class="po-bind-head_address"></span></p>
+                    </div>
+                    <div
+                        style="text-align: right; width: 35%; font-size: 13px; display: flex; flex-direction: column; justify-content: flex-start; margin-top: 5px;">
+                        <p style="margin: 0;"><strong><span class="po-bind-head_page_num"></span></strong></p>
+                    </div>
+                </div>
+
+                <table class="pdf-master-table">
+                    <tr>
+                        <td class="col-50" rowspan="2">
+                            <strong>Vendor Details</strong><br>
+                            <strong>Name:</strong> <span class="po-bind-v_name"></span><br>
+                            <strong>Address:</strong> <span class="po-bind-v_address"></span><br>
+                            <strong>Email:</strong> <span class="po-bind-v_email"></span><br>
+                            <strong>Contact Per:</strong> <span class="po-bind-v_contact"></span><br>
+                            <strong>Mobile No:</strong> <span class="po-bind-v_mobile"></span>
+                        </td>
+                        <td class="col-50 pdf-center" style="vertical-align: middle;">
+                            <strong style="font-size: 18px; letter-spacing: 1px;">PURCHASE ORDER</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Invoice Number:</strong> <span class="po-bind-number"></span><br><br>
+                            <strong>Date:</strong> <span class="po-bind-date"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-50">
+                            <strong>Customer Details</strong><br>
+                            <strong>Name:</strong> <span class="po-bind-c_name"></span><br>
+                            <strong>Address:</strong> <span class="po-bind-c_address"></span><br>
+                            <strong>Email:</strong> <span class="po-bind-c_email"></span><br>
+                            <strong>Contact Per:</strong> <span class="po-bind-c_contact"></span><br>
+                            <strong>Mobile No:</strong> <span class="po-bind-c_mobile"></span>
+                        </td>
+                        <td class="col-50">
+                            <strong>Deliver To</strong><br>
+                            <strong>Name:</strong> <span class="po-bind-d_name"></span><br>
+                            <strong>Address:</strong> <span class="po-bind-d_address"></span><br>
+                            <strong>Contact Per:</strong> <span class="po-bind-d_contact"></span><br>
+                            <strong>Mobile No:</strong> <span class="po-bind-d_mobile"></span>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="pdf-master-table">
+                    <tr style="background-color: #fcfcfc;">
+                        <th style="width: 25%;" class="pdf-center">Shipping Method</th>
+                        <th style="width: 25%;" class="pdf-center">Shipping Term</th>
+                        <th style="width: 25%;" class="pdf-center">Delivery Date</th>
+                        <th style="width: 25%;" class="pdf-center">Currency</th>
+                    </tr>
+                    <tr>
+                        <td class="pdf-center po-bind-ship_method"></td>
+                        <td class="pdf-center po-bind-ship_term"></td>
+                        <td class="pdf-center po-bind-del_date"></td>
+                        <td class="pdf-center po-dyn_curr_lbl"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="products-wrapper">
+                <table class="products-table-pdf">
+                    <thead>
+                        <tr style="background-color: #fcfcfc;">
+                            <th class="pdf-center" style="width: 8%;">Sl. No</th>
+                            <th class="pdf-center" style="width: 52%;">Description</th>
+                            <th class="pdf-center" style="width: 10%; font-size: 11px;">Quantity (Pcs)</th>
+                            <th class="pdf-center" style="width: 15%; font-size: 11px;">Unit Price<br>(<span
+                                    class="po-dyn_curr_lbl"></span>)</th>
+                            <th class="pdf-center" style="width: 15%; font-size: 11px;">Amount<br>(<span
+                                    class="po-dyn_curr_lbl"></span>)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="po-bind-item_body"></tbody>
+                </table>
+            </div>
+
+            <div id="bottom-section">
+                <table class="pdf-master-table" style="margin-bottom: 0;">
+                    <tr>
+                        <td rowspan="5" style="width: 60%; padding: 0; vertical-align: top;">
+                            <div style="padding: 6px; border-bottom: 1px solid #999; min-height: 40px;">
+                                <strong>Payment Terms</strong><br><span class="po-bind-pay_terms pre-line"></span>
+                            </div>
+                            <div
+                                style="padding: 10px; min-height: 120px; display: flex; justify-content: flex-start; align-items: flex-end;">
+                                <img class="po-bind-cust_stamp" src="" style="max-height: 110px; display: none;">
+                            </div>
+                        </td>
+                        <td style="width: 20%;"><strong>Subtotal (<span class="po-dyn_curr_lbl"></span>)</strong></td>
+                        <td style="width: 20%;" class="pdf-right"><span class="po-dyn_curr_sym"></span><span
+                                class="po-bind-subtotal"></span></td>
+                    </tr>
+                    <tr>
+                        <td>Shipping & Handling</td>
+                        <td class="pdf-right"><span class="po-dyn_curr_sym po-bind-sym_ship"></span><span
+                                class="po-bind-ship_charge"></span></td>
+                    </tr>
+                    <tr>
+                        <td>Other Cost</td>
+                        <td class="pdf-right"><span class="po-dyn_curr_sym po-bind-sym_tax"></span><span
+                                class="po-bind-tax_cost"></span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Amount (<span class="po-dyn_curr_lbl"></span>)</strong></td>
+                        <td class="pdf-right"><strong><span class="po-dyn_curr_sym"></span><span
+                                    class="po-bind-grandtotal"></span></strong></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"
+                            style="vertical-align: bottom; height: 110px; text-align: right; padding: 10px;">
+                            <div
+                                style="height: 80px; display: flex; justify-content: flex-end; align-items: center; margin-bottom: 5px;">
+                                <img class="po-bind-sig_img" src=""
+                                    style="max-height: 70px; max-width: 200px; display: none;">
+                            </div>
+                            <strong>Authorized Signatory</strong>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        let uploadedSignatureBase64 = "";
+        let uploadedCISignatureBase64 = "";
+        let uploadedPLSignatureBase64 = "";
+        let uploadedPOSignatureBase64 = "";
+        let uploadedCustStampBase64 = "";
+
+        // Safe DOM Text Binder Helper
+        const setTxt = (pageNode, selector, val) => {
+            pageNode.querySelectorAll(selector).forEach(el => {
+                el.innerText = (val !== undefined && val !== null) ? val : '';
+            });
+        };
+
+        // Initialization
+        document.addEventListener("DOMContentLoaded", () => {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+
+            // Default current date
+            document.getElementById('inv_date').value = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('ci_inv_date').value = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('pl_inv_date').value = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('po_date').value = `${yyyy}-${mm}-${dd}`;
+
+            // Ensure inputs exist to avoid null references
+            if (!document.getElementById('ci_total_text')) {
+                console.warn("Required form field 'ci_total_text' is missing from the DOM.");
+            }
+
+            updateSellerDetails();
+            updateCISellerDetails();
+            updatePLSellerDetails();
+            updatePOVendorDetails();
+
+            calculateLiveTotals();
+            calculateLiveCITotals();
+            calculateLivePLTotals();
+            calculateLivePOTotals();
+        });
+
+        function numberToWords(num) {
+            const a = ['', 'ONE ', 'TWO ', 'THREE ', 'FOUR ', 'FIVE ', 'SIX ', 'SEVEN ', 'EIGHT ', 'NINE ', 'TEN ', 'ELEVEN ', 'TWELVE ', 'THIRTEEN ', 'FOURTEEN ', 'FIFTEEN ', 'SIXTEEN ', 'SEVENTEEN ', 'EIGHTEEN ', 'NINETEEN '];
+            const b = ['', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY'];
+            if ((num = num.toString()).length > 9) return 'OVERFLOW';
+            let n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+            if (!n) return ''; let str = '';
+            str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + 'CRORE ' : '';
+            str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + 'LAKH ' : '';
+            str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + 'THOUSAND ' : '';
+            str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + 'HUNDRED ' : '';
+            str += (n[5] != 0) ? ((str != '') ? 'AND ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) : '';
+            return str.trim() + ' ONLY';
+        }
+
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active');
+                if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(tabId)) {
+                    b.classList.add('active');
+                }
+            });
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // ==========================================
+        //         PROFORMA INVOICE LOGIC 
+        // ==========================================
+
+        function updateSellerDetails() {
+            const company = document.getElementById('s_name').value;
+            const contactInput = document.getElementById('s_contact');
+            const emailInput = document.getElementById('s_email');
+            if (company === "Spotdeal Enterprises") {
+                contactInput.value = "Priya Paul";
+                emailInput.value = "spotdealenterprises@gmail.com";
+            } else if (company === "Shivansh International") {
+                contactInput.value = "Priya Paul";
+                emailInput.value = "admin.shivansh@gmail.com";
+            }
+        }
+
+        document.getElementById('s_signature').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    uploadedSignatureBase64 = event.target.result;
+                    document.getElementById('sig_preview').src = uploadedSignatureBase64;
+                    document.getElementById('sig_preview').style.display = 'block';
+                    document.getElementById('s_signature').classList.remove('error-field');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function calculateLiveTotals() {
+            const currencyVal = document.getElementById('currency').value.split('|');
+            const currSymbol = currencyVal[1];
+            let subtotal = 0;
+            document.querySelectorAll('#product-body tr').forEach(row => {
+                const qty = parseFloat(row.querySelector('.p_qty').value) || 0;
+                const price = parseFloat(row.querySelector('.p_price').value) || 0;
+                const total = qty * price;
+                row.querySelector('.row-total').innerText = total.toFixed(2);
+                subtotal += total;
+            });
+            const grandTotal = subtotal + (parseFloat(document.getElementById('ship_charge').value) || 0) + (parseFloat(document.getElementById('other_cost').value) || 0);
+
+            document.getElementById('grid_subtotal_ui').innerText = currSymbol + subtotal.toFixed(2);
+            document.getElementById('ui_subtotal').innerText = currSymbol + subtotal.toFixed(2);
+            document.getElementById('ui_grandtotal').innerText = currSymbol + grandTotal.toFixed(2);
+        }
+
+        function validateAndGeneratePDF() {
+            let isValid = true;
+            if (!uploadedSignatureBase64) {
+                document.getElementById('s_signature').classList.add('error-field');
+                alert(`Validation Error: Please upload a Signature.`);
+                isValid = false;
+            } else { document.getElementById('s_signature').classList.remove('error-field'); }
+
+            const reqFields = ['s_name', 's_contact', 's_address', 'b_name', 'b_contact', 'b_address', 'inv_number', 'inv_date', 'port_load', 'port_discharge', 'dispatch', 'incoterm', 'del_date', 'pay_terms', 'bank_details'];
+            for (let id of reqFields) {
+                const el = document.getElementById(id);
+                if (!el.value.trim()) { el.classList.add('error-field'); isValid = false; }
+            }
+            if (!isValid) return;
+            generatePDF();
+        }
+
+        function generatePDF() {
+            const wrapper = document.getElementById('pdf-render-wrapper');
+            wrapper.innerHTML = '';
+            const currSymbol = document.getElementById('currency').value.split('|')[1];
+            const currLabel = document.getElementById('currency').value.split('|')[0];
+            let overallSubtotal = 0;
+            const allProducts = [];
+
+            document.querySelectorAll('#product-body tr').forEach(row => {
+                const code = row.querySelector('.p_code').value;
+                const desc = row.querySelector('.p_desc').value;
+                const qty = parseFloat(row.querySelector('.p_qty').value) || 0;
+                const price = parseFloat(row.querySelector('.p_price').value) || 0;
+                if (desc || qty > 0 || price > 0) {
+                    allProducts.push({ code, desc, qty, price, amount: qty * price });
+                    overallSubtotal += qty * price;
+                }
+            });
+
+            const shipping = parseFloat(document.getElementById('ship_charge').value) || 0;
+            const other = parseFloat(document.getElementById('other_cost').value) || 0;
+            const grandTotal = overallSubtotal + shipping + other;
+
+            const chunks = [];
+            if (allProducts.length === 0) chunks.push([]);
+            for (let i = 0; i < allProducts.length; i += 15) chunks.push(allProducts.slice(i, i + 15));
+
+            chunks.forEach((chunk, index) => {
+                while (chunk.length < 15) chunk.push({ code: '', desc: '', qty: '', price: '', amount: '', isEmpty: true });
+                const page = document.getElementById('invoice-page-template').content.cloneNode(true);
+
+                setTxt(page, '.dyn_curr_lbl', currLabel);
+                setTxt(page, '.dyn_curr_sym', currSymbol);
+
+                setTxt(page, '.bind-head_name', document.getElementById('s_name').value.toUpperCase());
+                setTxt(page, '.bind-head_email', document.getElementById('s_email').value);
+                setTxt(page, '.bind-head_mobile', document.getElementById('s_mobile').value);
+                setTxt(page, '.bind-head_address', document.getElementById('s_address').value);
+                setTxt(page, '.bind-head_page_num', `Page ${index + 1} of ${chunks.length}`);
+
+                setTxt(page, '.bind-inv_number', document.getElementById('inv_number').value);
+                setTxt(page, '.bind-inv_date', formatDate(document.getElementById('inv_date').value));
+
+                setTxt(page, '.bind-s_name', document.getElementById('s_name').value);
+                setTxt(page, '.bind-s_email', document.getElementById('s_email').value);
+                setTxt(page, '.bind-s_contact', document.getElementById('s_contact').value);
+                setTxt(page, '.bind-s_mobile', document.getElementById('s_mobile').value);
+                setTxt(page, '.bind-s_address', document.getElementById('s_address').value);
+
+                setTxt(page, '.bind-b_name', document.getElementById('b_name').value);
+                setTxt(page, '.bind-b_email', document.getElementById('b_email').value);
+                setTxt(page, '.bind-b_contact', document.getElementById('b_contact').value);
+                setTxt(page, '.bind-b_mobile', document.getElementById('b_mobile').value);
+                setTxt(page, '.bind-b_address', document.getElementById('b_address').value);
+
+                setTxt(page, '.bind-port_load', document.getElementById('port_load').value);
+                setTxt(page, '.bind-port_discharge', document.getElementById('port_discharge').value);
+                setTxt(page, '.bind-dispatch', document.getElementById('dispatch').value);
+                setTxt(page, '.bind-incoterm', document.getElementById('incoterm').value);
+                setTxt(page, '.bind-del_date', formatDate(document.getElementById('del_date').value));
+
+                setTxt(page, '.bind-pay_terms', document.getElementById('pay_terms').value);
+                setTxt(page, '.bind-add_info', document.getElementById('add_info').value);
+                setTxt(page, '.bind-bank_details', document.getElementById('bank_details').value);
+
+                if (uploadedSignatureBase64) {
+                    page.querySelectorAll('.bind-sig_img').forEach(el => {
+                        el.src = uploadedSignatureBase64;
+                        el.style.display = 'block';
+                    });
+                }
+
+                const tbody = page.querySelector('.bind-item_body');
+                chunk.forEach(p => {
+                    const tr = document.createElement('tr');
+                    if (p.isEmpty) tr.innerHTML = `<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>`;
+                    else tr.innerHTML = `<td class="pdf-center">${p.code}</td><td class="pdf-center">${p.desc}</td><td class="pdf-center">${p.qty}</td><td class="pdf-center">${p.price.toFixed(2)}</td><td class="pdf-center">${p.amount.toFixed(2)}</td>`;
+                    tbody.appendChild(tr);
+                });
+
+                setTxt(page, '.bind-subtotal', overallSubtotal.toFixed(2));
+                setTxt(page, '.bind-ship_charge', shipping > 0 ? shipping.toFixed(2) : '');
+                setTxt(page, '.bind-sym_ship', shipping > 0 ? currSymbol : '');
+                setTxt(page, '.bind-other_cost', other > 0 ? other.toFixed(2) : '');
+                setTxt(page, '.bind-sym_other', other > 0 ? currSymbol : '');
+                setTxt(page, '.bind-grandtotal', grandTotal.toFixed(2));
+
+                wrapper.appendChild(page);
+            });
+
+            wrapper.style.display = 'block';
+
+            const opt = {
+                margin: [0, 0, 0, 0],
+                filename: `Proforma_Invoice_${document.getElementById('inv_number').value}.pdf`,
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { scale: 4, useCORS: true, letterRendering: true, dpi: 300 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(wrapper).save().then(() => {
+                wrapper.style.display = 'none';
+            });
+        }
+
+        // ==========================================
+        //         COMMERCIAL INVOICE LOGIC
+        // ==========================================
+
+        function updateCISellerDetails() {
+            const company = document.getElementById('ci_s_name').value;
+            if (company === "Spotdeal Enterprises") {
+                document.getElementById('ci_s_contact').value = "Priya Paul";
+                document.getElementById('ci_s_email').value = "spotdealenterprises@gmail.com";
+                document.getElementById('ci_s_address').value = "CZ-20B, Metropolitan Co-operative Housing Society Ltd. KOLKATA 700105";
+                document.getElementById('ci_s_gstin').value = "19ELHPP5387P1ZW";
+                document.getElementById('ci_s_iec').value = "ELHPP5387P";
+                document.getElementById('ci_s_rex').value = "INREXELHPP5387PEC029";
+            } else {
+                document.getElementById('ci_s_contact').value = "Priya Paul";
+                document.getElementById('ci_s_email').value = "admin.shivansh@gmail.com";
+            }
+        }
+
+        document.getElementById('ci_signature').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    uploadedCISignatureBase64 = event.target.result;
+                    document.getElementById('ci_sig_preview').src = uploadedCISignatureBase64;
+                    document.getElementById('ci_sig_preview').style.display = 'block';
+                    document.getElementById('ci_signature').classList.remove('error-field');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function calculateLiveCITotals() {
+            const currencyVal = document.getElementById('ci_currency').value.split('|');
+            const currSymbol = currencyVal[1];
+            let subtotal = 0;
+            document.querySelectorAll('#ci-product-body tr').forEach(row => {
+                const qty = parseFloat(row.querySelector('.ci_p_qty').value) || 0;
+                const price = parseFloat(row.querySelector('.ci_p_price').value) || 0;
+                const total = qty * price;
+                row.querySelector('.ci-row-total').innerText = total.toFixed(2);
+                subtotal += total;
+            });
+
+            const freight = parseFloat(document.getElementById('ci_freight').value) || 0;
+            const insurance = parseFloat(document.getElementById('ci_insurance').value) || 0;
+            const discount = parseFloat(document.getElementById('ci_discount').value) || 0;
+
+            const grandTotal = subtotal + freight + insurance - discount;
+
+            document.getElementById('ci_ui_subtotal').innerText = currSymbol + subtotal.toFixed(2);
+            document.getElementById('ci_ui_grandtotal').innerText = currSymbol + grandTotal.toFixed(2);
+        }
+
+        function validateAndGenerateCI_PDF() {
+            let isValid = true;
+            if (!uploadedCISignatureBase64) {
+                document.getElementById('ci_signature').classList.add('error-field');
+                alert(`Validation Error: Please upload an Authorized Signatory Signature for Export Invoice.`);
+                isValid = false;
+            } else { document.getElementById('ci_signature').classList.remove('error-field'); }
+
+            const reqFields = ['ci_s_name', 'ci_s_contact', 'ci_s_address', 'ci_b_name', 'ci_b_address', 'ci_inv_number', 'ci_inv_date', 'ci_pre_carriage', 'ci_receipt_place', 'ci_vessel', 'ci_port_load', 'ci_port_discharge', 'ci_final_dest', 'ci_origin', 'ci_destination', 'ci_terms'];
+            for (let id of reqFields) {
+                const el = document.getElementById(id);
+                if (!el.value.trim()) { el.classList.add('error-field'); isValid = false; }
+            }
+
+            if (!isValid) return alert("Please fill all mandatory fields for Commercial Invoice.");
+            generateCI_PDF();
+        }
+
+        function generateCI_PDF() {
+            const wrapper = document.getElementById('pdf-render-wrapper');
+            wrapper.innerHTML = '';
+            const currLabel = document.getElementById('ci_currency').value.split('|')[0];
+
+            let subtotal = 0;
+            let firstHsn = '';
+            const allProducts = [];
+            document.querySelectorAll('#ci-product-body tr').forEach(row => {
+                const marks = row.querySelector('.ci_p_marks').value;
+                const desc = row.querySelector('.ci_p_desc').value;
+                const qty = parseFloat(row.querySelector('.ci_p_qty').value) || 0;
+                const wt = row.querySelector('.ci_p_wt').value;
+                const hsn = row.querySelector('.ci_p_hsn').value;
+                const price = parseFloat(row.querySelector('.ci_p_price').value) || 0;
+                if (desc || qty > 0 || price > 0) {
+                    if (!firstHsn && hsn) firstHsn = hsn;
+                    allProducts.push({ marks, desc, qty, wt, hsn, rate: price, amount: qty * price });
+                    subtotal += qty * price;
+                }
+            });
+
+            const freight = parseFloat(document.getElementById('ci_freight').value) || 0;
+            const insurance = parseFloat(document.getElementById('ci_insurance').value) || 0;
+            const discount = parseFloat(document.getElementById('ci_discount').value) || 0;
+
+            const grandTotal = subtotal + freight + insurance - discount;
+
+            const chunks = [];
+            if (allProducts.length === 0) chunks.push([]);
+            for (let i = 0; i < allProducts.length; i += 8) chunks.push(allProducts.slice(i, i + 8));
+
+            chunks.forEach((chunk, index) => {
+                const isLastPage = index === chunks.length - 1;
+                while (chunk.length < 8) chunk.push({ marks: '', desc: '', qty: '', wt: '', hsn: '', rate: '', amount: '', isEmpty: true });
+
+                const page = document.getElementById('ci-page-template').content.cloneNode(true);
+
+                setTxt(page, '.ci-dyn_curr_lbl', currLabel);
+
+                setTxt(page, '.ci-bind-s_name', document.getElementById('ci_s_name').value);
+                setTxt(page, '.ci-bind-s_address', document.getElementById('ci_s_address').value);
+                setTxt(page, '.ci-bind-s_email', document.getElementById('ci_s_email').value);
+                setTxt(page, '.ci-bind-s_mobile', document.getElementById('ci_s_mobile').value);
+                setTxt(page, '.ci-bind-s_gstin', document.getElementById('ci_s_gstin').value);
+
+                setTxt(page, '.ci-bind-inv_number', document.getElementById('ci_inv_number').value);
+                setTxt(page, '.ci-bind-inv_date', formatDate(document.getElementById('ci_inv_date').value));
+                setTxt(page, '.ci-bind-iec', document.getElementById('ci_s_iec').value);
+                setTxt(page, '.ci-bind-ad_code', document.getElementById('ci_s_ad_code').value);
+
+                const lutVal = document.getElementById('ci_lut') ? document.getElementById('ci_lut').value : '';
+                setTxt(page, '.ci-bind-lut-top', lutVal ? `LUT ARN NO: ${lutVal}` : '');
+
+                setTxt(page, '.ci-bind-b_name', document.getElementById('ci_b_name').value);
+                setTxt(page, '.ci-bind-b_address', document.getElementById('ci_b_address').value);
+                setTxt(page, '.ci-bind-b_contact', document.getElementById('ci_b_contact').value);
+                setTxt(page, '.ci-bind-b_mobile', document.getElementById('ci_b_mobile').value);
+                setTxt(page, '.ci-bind-b_vat', document.getElementById('ci_b_vat').value);
+
+                setTxt(page, '.ci-bind-d_name', document.getElementById('ci_b_name').value);
+                setTxt(page, '.ci-bind-d_address', document.getElementById('ci_d_address').value);
+                setTxt(page, '.ci-bind-d_contact', document.getElementById('ci_b_contact').value);
+                setTxt(page, '.ci-bind-d_mobile', document.getElementById('ci_b_mobile').value);
+
+                setTxt(page, '.ci-bind-pre_carriage', document.getElementById('ci_pre_carriage').value);
+                setTxt(page, '.ci-bind-receipt_place', document.getElementById('ci_receipt_place').value);
+                setTxt(page, '.ci-bind-origin', document.getElementById('ci_origin').value);
+                setTxt(page, '.ci-bind-destination', document.getElementById('ci_destination').value);
+                setTxt(page, '.ci-bind-vessel', document.getElementById('ci_vessel').value);
+                setTxt(page, '.ci-bind-port_load', document.getElementById('ci_port_load').value);
+                setTxt(page, '.ci-bind-terms', document.getElementById('ci_terms').value);
+                setTxt(page, '.ci-bind-port_discharge', document.getElementById('ci_port_discharge').value);
+                setTxt(page, '.ci-bind-final_dest', document.getElementById('ci_final_dest').value);
+
+                const tbody = page.querySelector('.ci-bind-item_body');
+                chunk.forEach(p => {
+                    const tr = document.createElement('tr');
+                    if (p.isEmpty) tr.innerHTML = `<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>`;
+                    else tr.innerHTML = `<td class="pre-line" style="vertical-align:top;">${p.marks}</td><td style="vertical-align:top;">${p.desc}</td><td class="pdf-center" style="vertical-align:top;">${p.qty}</td><td class="pdf-center" style="vertical-align:top;">${p.wt}</td><td class="pdf-center" style="vertical-align:top;">${p.hsn}</td><td class="pdf-center" style="vertical-align:top;">${p.rate.toFixed(1)}</td><td class="pdf-center" style="vertical-align:top;">${p.amount.toFixed(0)}</td>`;
+                    tbody.appendChild(tr);
+                });
+
+                if (isLastPage) {
+                    const dimEl = document.getElementById('ci_dimension');
+                    const totTextEl = document.getElementById('ci_total_text');
+
+                    setTxt(page, '.ci-bind-dim-display', dimEl ? dimEl.value : '');
+                    setTxt(page, '.ci-bind-tot-display', totTextEl ? totTextEl.value : '');
+
+                    setTxt(page, '.ci-bind-amount_words', numberToWords(Math.round(grandTotal)));
+                    setTxt(page, '.ci-bind-first-hsn', firstHsn);
+                    setTxt(page, '.ci-bind-rex', document.getElementById('ci_s_rex').value);
+
+                    setTxt(page, '.ci-bind-subtotal', subtotal.toFixed(0));
+                    setTxt(page, '.ci-bind-freight', freight > 0 ? freight.toFixed(0) : '');
+                    setTxt(page, '.ci-bind-insurance', insurance > 0 ? insurance.toFixed(0) : '');
+                    setTxt(page, '.ci-bind-discount', discount > 0 ? discount.toFixed(0) : '');
+                    setTxt(page, '.ci-bind-grandtotal', grandTotal.toFixed(0));
+
+                    if (uploadedCISignatureBase64) {
+                        page.querySelectorAll('.ci-bind-sig_img').forEach(el => {
+                            el.src = uploadedCISignatureBase64;
+                            el.style.display = 'block';
+                        });
+                    }
+                } else {
+                    const bottomSec = page.querySelector('.bottom-section');
+                    if (bottomSec) bottomSec.style.display = 'none';
+                }
+
+                wrapper.appendChild(page);
+            });
+
+            wrapper.style.display = 'block';
+
+            const opt = {
+                margin: [0, 0, 0, 0],
+                filename: `Export_Invoice_${document.getElementById('ci_inv_number').value}.pdf`,
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { scale: 4, useCORS: true, letterRendering: true, dpi: 300 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(wrapper).save().then(() => {
+                wrapper.style.display = 'none';
+            });
+        }
+
+        // ==========================================
+        //         PACKING LIST LOGIC
+        // ==========================================
+
+        function updatePLSellerDetails() {
+            const company = document.getElementById('pl_s_name').value;
+            if (company === "Spotdeal Enterprises") {
+                document.getElementById('pl_s_contact').value = "Priya Paul";
+                document.getElementById('pl_s_email').value = "spotdealenterprises@gmail.com";
+                document.getElementById('pl_s_address').value = "CZ-20B, Metropolitan Co-operative Housing Society Ltd. KOLKATA 700105";
+                document.getElementById('pl_s_gstin').value = "19ELHPP5387P1ZW";
+                document.getElementById('pl_s_iec').value = "ELHPP5387P";
+                document.getElementById('pl_s_rex').value = "INREXELHPP5387PEC029";
+            } else {
+                document.getElementById('pl_s_contact').value = "Priya Paul";
+                document.getElementById('pl_s_email').value = "admin.shivansh@gmail.com";
+            }
+        }
+
+        document.getElementById('pl_signature').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    uploadedPLSignatureBase64 = event.target.result;
+                    document.getElementById('pl_sig_preview').src = uploadedPLSignatureBase64;
+                    document.getElementById('pl_sig_preview').style.display = 'block';
+                    document.getElementById('pl_signature').classList.remove('error-field');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function calculateLivePLTotals() {
+            let totalQty = 0;
+            let totalNwt = 0;
+            let totalGwt = 0;
+
+            document.querySelectorAll('#pl-product-body tr').forEach(row => {
+                const qty = parseFloat(row.querySelector('.pl_p_qty').value) || 0;
+                const nwt = parseFloat(row.querySelector('.pl_p_nwt').value) || 0;
+                const gwt = parseFloat(row.querySelector('.pl_p_gwt').value) || 0;
+
+                totalQty += qty;
+                totalNwt += nwt;
+                totalGwt += gwt;
+            });
+
+            document.getElementById('pl_ui_qty').innerText = totalQty.toString();
+            document.getElementById('pl_ui_nwt').innerText = totalNwt.toFixed(2);
+            document.getElementById('pl_ui_gwt').innerText = totalGwt.toFixed(2);
+        }
+
+        function validateAndGeneratePL_PDF() {
+            let isValid = true;
+            if (!uploadedPLSignatureBase64) {
+                document.getElementById('pl_signature').classList.add('error-field');
+                alert(`Validation Error: Please upload an Authorized Signatory Signature for Packing List.`);
+                isValid = false;
+            } else { document.getElementById('pl_signature').classList.remove('error-field'); }
+
+            const reqFields = ['pl_s_name', 'pl_s_contact', 'pl_s_address', 'pl_b_name', 'pl_b_address', 'pl_inv_number', 'pl_inv_date', 'pl_pre_carriage', 'pl_receipt_place', 'pl_vessel', 'pl_port_load', 'pl_port_discharge', 'pl_final_dest', 'pl_origin', 'pl_destination', 'pl_terms'];
+            for (let id of reqFields) {
+                const el = document.getElementById(id);
+                if (!el.value.trim()) { el.classList.add('error-field'); isValid = false; }
+            }
+
+            if (!isValid) return alert("Please fill all mandatory fields for Packing List.");
+            generatePL_PDF();
+        }
+
+        function generatePL_PDF() {
+            const wrapper = document.getElementById('pdf-render-wrapper');
+            wrapper.innerHTML = '';
+
+            let overallPlQty = 0;
+            let overallPlNwt = 0;
+            let overallPlGwt = 0;
+
+            const allProducts = [];
+            document.querySelectorAll('#pl-product-body tr').forEach(row => {
+                const marks = row.querySelector('.pl_p_marks').value;
+                const pkgs = row.querySelector('.pl_p_pkgs').value;
+                const desc = row.querySelector('.pl_p_desc').value;
+                const qty = parseFloat(row.querySelector('.pl_p_qty').value) || 0;
+                const nwt = parseFloat(row.querySelector('.pl_p_nwt').value) || 0;
+                const gwt = parseFloat(row.querySelector('.pl_p_gwt').value) || 0;
+
+                if (desc || qty > 0 || nwt > 0 || gwt > 0) {
+                    allProducts.push({ marks, pkgs, desc, qty, nwt, gwt });
+                    overallPlQty += qty;
+                    overallPlNwt += nwt;
+                    overallPlGwt += gwt;
+                }
+            });
+
+            const chunks = [];
+            if (allProducts.length === 0) chunks.push([]);
+            for (let i = 0; i < allProducts.length; i += 10) chunks.push(allProducts.slice(i, i + 10));
+
+            chunks.forEach((chunk, index) => {
+                const isLastPage = index === chunks.length - 1;
+                while (chunk.length < 10) chunk.push({ marks: '', pkgs: '', desc: '', qty: '', nwt: '', gwt: '', isEmpty: true });
+
+                const page = document.getElementById('pl-page-template').content.cloneNode(true);
+
+                setTxt(page, '.pl-bind-s_name', document.getElementById('pl_s_name').value);
+                setTxt(page, '.pl-bind-s_address', document.getElementById('pl_s_address').value);
+                setTxt(page, '.pl-bind-s_email', document.getElementById('pl_s_email').value);
+                setTxt(page, '.pl-bind-s_mobile', document.getElementById('pl_s_mobile').value);
+                setTxt(page, '.pl-bind-s_gstin', document.getElementById('pl_s_gstin').value);
+
+                setTxt(page, '.pl-bind-inv_number', document.getElementById('pl_inv_number').value);
+                setTxt(page, '.pl-bind-inv_date', formatDate(document.getElementById('pl_inv_date').value));
+                setTxt(page, '.pl-bind-iec', document.getElementById('pl_s_iec').value);
+                setTxt(page, '.pl-bind-ad_code', document.getElementById('pl_s_ad_code').value);
+
+                const lutVal = document.getElementById('pl_lut') ? document.getElementById('pl_lut').value : '';
+                setTxt(page, '.pl-bind-lut-top', lutVal ? `LUT ARN NO: ${lutVal}` : '');
+
+                setTxt(page, '.pl-bind-b_name', document.getElementById('pl_b_name').value);
+                setTxt(page, '.pl-bind-b_address', document.getElementById('pl_b_address').value);
+                setTxt(page, '.pl-bind-b_contact', document.getElementById('pl_b_contact').value);
+                setTxt(page, '.pl-bind-b_mobile', document.getElementById('pl_b_mobile').value);
+                setTxt(page, '.pl-bind-b_vat', document.getElementById('pl_b_vat').value);
+
+                setTxt(page, '.pl-bind-d_name', document.getElementById('pl_b_name').value);
+                setTxt(page, '.pl-bind-d_address', document.getElementById('pl_d_address').value);
+                setTxt(page, '.pl-bind-d_contact', document.getElementById('pl_b_contact').value);
+                setTxt(page, '.pl-bind-d_mobile', document.getElementById('pl_b_mobile').value);
+
+                setTxt(page, '.pl-bind-pre_carriage', document.getElementById('pl_pre_carriage').value);
+                setTxt(page, '.pl-bind-receipt_place', document.getElementById('pl_receipt_place').value);
+                setTxt(page, '.pl-bind-origin', document.getElementById('pl_origin').value);
+                setTxt(page, '.pl-bind-destination', document.getElementById('pl_destination').value);
+                setTxt(page, '.pl-bind-vessel', document.getElementById('pl_vessel').value);
+                setTxt(page, '.pl-bind-port_load', document.getElementById('pl_port_load').value);
+                setTxt(page, '.pl-bind-terms', document.getElementById('pl_terms').value);
+                setTxt(page, '.pl-bind-port_discharge', document.getElementById('pl_port_discharge').value);
+                setTxt(page, '.pl-bind-final_dest', document.getElementById('pl_final_dest').value);
+
+                const tbody = page.querySelector('.pl-bind-item_body');
+                chunk.forEach(p => {
+                    const tr = document.createElement('tr');
+                    if (p.isEmpty) tr.innerHTML = `<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>`;
+                    else tr.innerHTML = `<td class="pre-line" style="vertical-align:top;">${p.marks}</td><td class="pre-line" style="vertical-align:top;">${p.pkgs}</td><td style="vertical-align:top;">${p.desc}</td><td class="pdf-center" style="vertical-align:top;">${p.qty}</td><td class="pdf-center" style="vertical-align:top;">${p.nwt.toString().replace(/\.00$/, '')}</td><td class="pdf-center" style="vertical-align:top;">${p.gwt.toString().replace(/\.00$/, '')}</td>`;
+                    tbody.appendChild(tr);
+                });
+
+                if (isLastPage) {
+                    const dimEl = document.getElementById('pl_dimension');
+                    const dim = dimEl ? dimEl.value : '';
+
+                    const tfoot = page.querySelector('.pl-bind-footer_rows');
+
+                    tfoot.innerHTML += `<tr>
+                        <td colspan="3" class="pdf-right" style="border-top: 1px solid #999 !important; border-bottom: 1px solid #999 !important; font-weight: bold; padding-right: 15px;">Total:</td>
+                        <td class="pdf-center" style="border-top: 1px solid #999 !important; border-bottom: 1px solid #999 !important; font-weight: bold;">${overallPlQty}</td>
+                        <td class="pdf-center" style="border-top: 1px solid #999 !important; border-bottom: 1px solid #999 !important; font-weight: bold;">${overallPlNwt.toFixed(2).replace(/\.00$/, '')}</td>
+                        <td class="pdf-center" style="border-top: 1px solid #999 !important; border-bottom: 1px solid #999 !important; font-weight: bold;">${overallPlGwt.toFixed(2).replace(/\.00$/, '')}</td>
+                    </tr>`;
+
+                    if (dim) tfoot.innerHTML += `<tr><td colspan="6" class="pre-line" style="text-align: left; font-weight: normal; padding: 8px 6px;">${dim}</td></tr>`;
+
+                    setTxt(page, '.pl-bind-hsn', document.getElementById('pl_hsn').value);
+                    setTxt(page, '.pl-bind-rex', document.getElementById('pl_s_rex').value);
+
+                    if (uploadedPLSignatureBase64) {
+                        page.querySelectorAll('.pl-bind-sig_img').forEach(el => {
+                            el.src = uploadedPLSignatureBase64;
+                            el.style.display = 'block';
+                        });
+                    }
+                } else {
+                    const bottomSec = page.querySelector('.bottom-section');
+                    if (bottomSec) bottomSec.style.display = 'none';
+                }
+
+                wrapper.appendChild(page);
+            });
+
+            wrapper.style.display = 'block';
+
+            const opt = {
+                margin: [0, 0, 0, 0],
+                filename: `Packing_List_${document.getElementById('pl_inv_number').value}.pdf`,
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { scale: 4, useCORS: true, letterRendering: true, dpi: 300 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(wrapper).save().then(() => {
+                wrapper.style.display = 'none';
+            });
+        }
+
+        // ==========================================
+        //         NEW PURCHASE ORDER LOGIC
+        // ==========================================
+
+        function updatePOVendorDetails() {
+            const company = document.getElementById('po_v_name').value;
+            if (company === "Spotdeal Enterprises") {
+                document.getElementById('po_v_contact').value = "Priya Paul";
+                document.getElementById('po_v_email').value = "spotdealenterprises@gmail.com";
+                document.getElementById('po_v_mobile').value = "+91 9874525414";
+                document.getElementById('po_v_address').value = "Metropolitan CZ-20B Co-Opt Housing Society Ltd Canal South Road, Kolkata - 700105";
+            } else if (company === "Shivansh International") {
+                document.getElementById('po_v_contact').value = "Priya Paul";
+                document.getElementById('po_v_email').value = "admin.shivansh@gmail.com";
+                document.getElementById('po_v_mobile').value = "+91 9874525414";
+                document.getElementById('po_v_address').value = "Metropolitan CZ-20B, Canal South Road, Kol-700105";
+            }
+        }
+
+        document.getElementById('po_cust_stamp').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    uploadedCustStampBase64 = event.target.result;
+                    document.getElementById('po_cust_preview').src = uploadedCustStampBase64;
+                    document.getElementById('po_cust_preview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('po_signature').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    uploadedPOSignatureBase64 = event.target.result;
+                    document.getElementById('po_sig_preview').src = uploadedPOSignatureBase64;
+                    document.getElementById('po_sig_preview').style.display = 'block';
+                    document.getElementById('po_signature').classList.remove('error-field');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function calculateLivePOTotals() {
+            const currencyVal = document.getElementById('po_currency').value.split('|');
+            const currSymbol = currencyVal[1];
+            let subtotal = 0;
+            document.querySelectorAll('#po-product-body tr').forEach(row => {
+                const qty = parseFloat(row.querySelector('.po_p_qty').value) || 0;
+                const price = parseFloat(row.querySelector('.po_p_price').value) || 0;
+                const total = qty * price;
+                row.querySelector('.po-row-total').innerText = total.toFixed(2);
+                subtotal += total;
+            });
+
+            const shipping = parseFloat(document.getElementById('po_ship_charge').value) || 0;
+            const tax = parseFloat(document.getElementById('po_tax_cost').value) || 0;
+            const grandTotal = subtotal + shipping + tax;
+
+            document.getElementById('po_grid_subtotal_ui').innerText = currSymbol + subtotal.toFixed(2);
+            document.getElementById('po_ui_subtotal').innerText = currSymbol + subtotal.toFixed(2);
+            document.getElementById('po_ui_grandtotal').innerText = currSymbol + grandTotal.toFixed(2);
+        }
+
+        function validateAndGeneratePO_PDF() {
+            let isValid = true;
+            if (!uploadedPOSignatureBase64) {
+                document.getElementById('po_signature').classList.add('error-field');
+                alert(`Validation Error: Please upload an Authorized Signatory Signature for the PO.`);
+                isValid = false;
+            } else { document.getElementById('po_signature').classList.remove('error-field'); }
+
+            const reqFields = ['po_v_name', 'po_v_contact', 'po_v_address', 'po_c_name', 'po_c_contact', 'po_c_address', 'po_d_name', 'po_d_contact', 'po_d_address', 'po_number', 'po_date', 'po_ship_method', 'po_ship_term', 'po_pay_terms'];
+            for (let id of reqFields) {
+                const el = document.getElementById(id);
+                if (!el.value.trim()) { el.classList.add('error-field'); isValid = false; }
+            }
+
+            const currentDateStr = document.getElementById('po_date').value;
+            const delDateElement = document.getElementById('po_del_date');
+            if (!delDateElement.value) {
+                delDateElement.classList.add('error-field'); isValid = false;
+            } else if (currentDateStr && new Date(delDateElement.value) <= new Date(currentDateStr)) {
+                delDateElement.classList.add('error-field'); isValid = false;
+                alert('Validation Error: Delivery Date must be greater than P.O. Date.');
+            } else { delDateElement.classList.remove('error-field'); }
+
+            if (!isValid) return;
+            generatePO_PDF();
+        }
+
+        function generatePO_PDF() {
+            const wrapper = document.getElementById('pdf-render-wrapper');
+            wrapper.innerHTML = '';
+            const currSymbol = document.getElementById('po_currency').value.split('|')[1];
+            const currLabel = document.getElementById('po_currency').value.split('|')[0];
+
+            let overallSubtotal = 0;
+            const allProducts = [];
+            document.querySelectorAll('#po-product-body tr').forEach((row) => {
+                const desc = row.querySelector('.po_p_desc').value;
+                const qty = parseFloat(row.querySelector('.po_p_qty').value) || 0;
+                const price = parseFloat(row.querySelector('.po_p_price').value) || 0;
+                if (desc || qty > 0 || price > 0) {
+                    allProducts.push({ desc, qty, price, amount: qty * price });
+                    overallSubtotal += qty * price;
+                }
+            });
+
+            const shipping = parseFloat(document.getElementById('po_ship_charge').value) || 0;
+            const tax = parseFloat(document.getElementById('po_tax_cost').value) || 0;
+            const grandTotal = overallSubtotal + shipping + tax;
+
+            const chunks = [];
+            if (allProducts.length === 0) chunks.push([]);
+            for (let i = 0; i < allProducts.length; i += 15) chunks.push(allProducts.slice(i, i + 15));
+
+            chunks.forEach((chunk, index) => {
+                while (chunk.length < 15) chunk.push({ desc: '', qty: '', price: '', amount: '', isEmpty: true });
+                const page = document.getElementById('po-page-template').content.cloneNode(true);
+
+                setTxt(page, '.po-dyn_curr_lbl', currLabel);
+                setTxt(page, '.po-dyn_curr_sym', currSymbol);
+
+                setTxt(page, '.po-bind-head_name', document.getElementById('po_v_name').value.toUpperCase());
+                setTxt(page, '.po-bind-head_email', document.getElementById('po_v_email').value);
+                setTxt(page, '.po-bind-head_mobile', document.getElementById('po_v_mobile').value);
+                setTxt(page, '.po-bind-head_address', document.getElementById('po_v_address').value);
+                setTxt(page, '.po-bind-head_page_num', `Page ${index + 1} of ${chunks.length}`);
+
+                setTxt(page, '.po-bind-v_name', document.getElementById('po_v_name').value);
+                setTxt(page, '.po-bind-v_address', document.getElementById('po_v_address').value);
+                setTxt(page, '.po-bind-v_email', document.getElementById('po_v_email').value);
+                setTxt(page, '.po-bind-v_contact', document.getElementById('po_v_contact').value);
+                setTxt(page, '.po-bind-v_mobile', document.getElementById('po_v_mobile').value);
+
+                setTxt(page, '.po-bind-c_name', document.getElementById('po_c_name').value);
+                setTxt(page, '.po-bind-c_address', document.getElementById('po_c_address').value);
+                setTxt(page, '.po-bind-c_email', document.getElementById('po_c_email').value);
+                setTxt(page, '.po-bind-c_contact', document.getElementById('po_c_contact').value);
+                setTxt(page, '.po-bind-c_mobile', document.getElementById('po_c_mobile').value);
+
+                setTxt(page, '.po-bind-d_name', document.getElementById('po_d_name').value);
+                setTxt(page, '.po-bind-d_contact', document.getElementById('po_d_contact').value);
+                setTxt(page, '.po-bind-d_mobile', document.getElementById('po_d_mobile').value);
+                setTxt(page, '.po-bind-d_address', document.getElementById('po_d_address').value);
+
+                setTxt(page, '.po-bind-number', document.getElementById('po_number').value);
+                setTxt(page, '.po-bind-date', formatDate(document.getElementById('po_date').value));
+                setTxt(page, '.po-bind-ship_method', document.getElementById('po_ship_method').value);
+                setTxt(page, '.po-bind-ship_term', document.getElementById('po_ship_term').value);
+                setTxt(page, '.po-bind-del_date', formatDate(document.getElementById('po_del_date').value));
+
+                setTxt(page, '.po-bind-pay_terms', document.getElementById('po_pay_terms').value);
+
+                if (uploadedCustStampBase64) {
+                    page.querySelectorAll('.po-bind-cust_stamp').forEach(el => {
+                        el.src = uploadedCustStampBase64;
+                        el.style.display = 'block';
+                    });
+                }
+
+                if (uploadedPOSignatureBase64) {
+                    page.querySelectorAll('.po-bind-sig_img').forEach(el => {
+                        el.src = uploadedPOSignatureBase64;
+                        el.style.display = 'block';
+                    });
+                }
+
+                const tbody = page.querySelector('.po-bind-item_body');
+                chunk.forEach((p, chunkItemIndex) => {
+                    const tr = document.createElement('tr');
+                    if (p.isEmpty) {
+                        tr.innerHTML = `<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>`;
+                    } else {
+                        const globalSlNo = (index * 15) + chunkItemIndex + 1;
+                        tr.innerHTML = `<td class="pdf-center">${globalSlNo}</td><td class="pdf-center">${p.desc}</td><td class="pdf-center">${p.qty}</td><td class="pdf-center">${p.price.toFixed(2)}</td><td class="pdf-center">${p.amount.toFixed(2)}</td>`;
+                    }
+                    tbody.appendChild(tr);
+                });
+
+                setTxt(page, '.po-bind-subtotal', overallSubtotal.toFixed(2));
+                setTxt(page, '.po-bind-ship_charge', shipping > 0 ? shipping.toFixed(2) : '');
+                setTxt(page, '.po-bind-sym_ship', shipping > 0 ? currSymbol : '');
+                setTxt(page, '.po-bind-tax_cost', tax > 0 ? tax.toFixed(2) : '');
+                setTxt(page, '.po-bind-sym_tax', tax > 0 ? currSymbol : '');
+                setTxt(page, '.po-bind-grandtotal', grandTotal.toFixed(2));
+
+                wrapper.appendChild(page);
+            });
+
+            wrapper.style.display = 'block';
+
+            const opt = {
+                margin: [0, 0, 0, 0],
+                filename: `Purchase_Order_${document.getElementById('po_number').value}.pdf`,
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { scale: 4, useCORS: true, letterRendering: true, dpi: 300 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(wrapper).save().then(() => {
+                wrapper.style.display = 'none';
+            });
+        }
+
+        // ==========================================
+        //         GLOBAL HELPER FUNCTIONS
+        // ==========================================
+
+        function addRow(type) {
+            const tbody = document.getElementById(type === 'purchase' ? 'po-product-body' : type === 'ci' ? 'ci-product-body' : type === 'pl' ? 'pl-product-body' : 'product-body');
+            const row = document.createElement('tr');
+            if (type === 'ci') {
+                row.innerHTML = `<td><input type="text" class="ci_p_marks" value=""></td><td><input type="text" class="ci_p_desc" value=""></td><td><input type="number" class="ci_p_qty" value="0" min="0"></td><td><input type="number" class="ci_p_wt" value="0" min="0"></td><td><input type="text" class="ci_p_hsn" value=""></td><td><input type="number" step="0.01" class="ci_p_price" value="0" min="0"></td><td><strong class="ci-row-total">0.00</strong></td><td><button class="btn btn-remove" onclick="removeRow(this, 'ci')">X</button></td>`;
+            } else if (type === 'pl') {
+                row.innerHTML = `<td><input type="text" class="pl_p_marks" value=""></td><td><input type="text" class="pl_p_pkgs" value=""></td><td><input type="text" class="pl_p_desc" value=""></td><td><input type="number" class="pl_p_qty" value="0" min="0"></td><td><input type="number" step="0.01" class="pl_p_nwt" value="0" min="0"></td><td><input type="number" step="0.01" class="pl_p_gwt" value="0" min="0"></td><td><button class="btn btn-remove" onclick="removeRow(this, 'pl')">X</button></td>`;
+            } else if (type === 'purchase') {
+                row.innerHTML = `<td><input type="text" class="po_p_desc" value=""></td><td><input type="number" class="po_p_qty" value="0" min="0"></td><td><input type="number" class="po_p_price" step="0.01" value="0" min="0"></td><td><strong class="po-row-total">0.00</strong></td><td><button class="btn btn-remove" onclick="removeRow(this, 'purchase')">X</button></td>`;
+            } else {
+                row.innerHTML = `<td><input type="text" class="p_code" value=""></td><td><input type="text" class="p_desc" value=""></td><td><input type="number" class="p_qty" value="0" min="0"></td><td><input type="number" class="p_price" step="0.01" value="0" min="0"></td><td><strong class="row-total">0.00</strong></td><td><button class="btn btn-remove" onclick="removeRow(this, 'proforma')">X</button></td>`;
+            }
+            tbody.appendChild(row);
+            type === 'purchase' ? calculateLivePOTotals() : type === 'ci' ? calculateLiveCITotals() : type === 'pl' ? calculateLivePLTotals() : calculateLiveTotals();
+        }
+
+        function removeRow(btn, type) {
+            btn.parentNode.parentNode.remove();
+            type === 'purchase' ? calculateLivePOTotals() : type === 'ci' ? calculateLiveCITotals() : type === 'pl' ? calculateLivePLTotals() : calculateLiveTotals();
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return "";
+            const parts = dateStr.split('-');
+            return `${parts[2]}.${parts[1]}.${parts[0]}`;
+        }
+
+        document.addEventListener('input', function (e) {
+            if (e.target.classList.contains('p_qty') || e.target.classList.contains('p_price') || e.target.id === 'ship_charge' || e.target.id === 'other_cost') calculateLiveTotals();
+            if (e.target.classList.contains('po_p_qty') || e.target.classList.contains('po_p_price') || e.target.id === 'po_ship_charge' || e.target.id === 'po_tax_cost') calculateLivePOTotals();
+            if (e.target.classList.contains('ci_p_qty') || e.target.classList.contains('ci_p_price') || ['ci_freight', 'ci_insurance', 'ci_discount'].includes(e.target.id)) calculateLiveCITotals();
+            if (e.target.classList.contains('pl_p_qty') || e.target.classList.contains('pl_p_nwt') || e.target.classList.contains('pl_p_gwt')) calculateLivePLTotals();
+
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+                if (e.target.value.trim() !== '') e.target.classList.remove('error-field');
+            }
+        });
+
+        document.getElementById('currency').addEventListener('change', calculateLiveTotals);
+        document.getElementById('po_currency').addEventListener('change', calculateLivePOTotals);
+        document.getElementById('ci_currency').addEventListener('change', calculateLiveCITotals);
+
+    </script>
+</body>
+
 </html>
